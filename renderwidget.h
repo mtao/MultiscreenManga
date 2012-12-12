@@ -8,6 +8,8 @@
 #include <QtOpenGL/QGLFunctions>
 #include <QtOpenGL/QGLShaderProgram>
 #include <QtOpenGL/QGLBuffer>
+#include <QPointF>
+#include <QPoint>
 
 
 class MainWindow;
@@ -16,6 +18,8 @@ class RenderWidget : public QGLWidget, protected QGLFunctions
 {
     Q_OBJECT
 public:
+    enum FIT_MODE{FM_WIDTH, FM_HEIGHT, FM_BEST};
+    enum ROTATE_MODE{RM_NORMAL, RM_LEFT, RM_RIGHT, RM_INVERT};
     explicit RenderWidget(
             std::mutex & mutex
             , uint page_num
@@ -27,9 +31,12 @@ public:
     void setMessyCleanup(){m_no_index_cleanup = true;}
     ~RenderWidget();
     
+    protected:
+    void keyPressEvent(QKeyEvent *);
 signals:
     void renderWidgetClosing(uint index);
-    
+    void passKeyPressEvent(QKeyEvent *);
+
 public slots:
     void setPage(uint page);
     void setMangaVolume(std::shared_ptr<const MangaVolume> volume);
@@ -47,9 +54,12 @@ public slots:
     uint m_page_num = 0;
     GLuint m_page_texture_id;
     std::mutex & m_mutex;
-    float m_scale=0.5;
+    QPointF m_scale;
+    QPoint m_resolution;
+    FIT_MODE m_fit_mode = FM_BEST;
     bool m_no_index_cleanup = false;
     const GLuint m_vertex_attribute = 0;
+    void checkScale();
 
 
 

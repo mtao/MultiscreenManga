@@ -2,6 +2,8 @@
 #include "mainwindow.h"
 #include <QDebug>
 #include <QtOpenGL/QGLShader>
+#include <QMatrix4x4>
+#include <QKeyEvent>
 
 
 RenderWidget::RenderWidget(std::mutex & mutex, uint page, uint index, std::shared_ptr<const MangaVolume> volume, MainWindow *parent) :
@@ -33,8 +35,12 @@ void RenderWidget::setPage(uint page)
         return;
     }
     makeCurrent();
+    m_resolution = QPoint(img.width(),img.height());
     m_page_texture_id = bindTexture(img);
+    checkScale();
 
+    qWarning() << "Done loading page";
+    update();
 }
 
 void RenderWidget::initializeGL()
@@ -44,20 +50,71 @@ void RenderWidget::initializeGL()
     glEnable(GL_TEXTURE_2D);
     qglClearColor(QColor(0,0,0));
 
-
-
 }
+
+void RenderWidget::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_F && m_index != 0)
+    {
+        if(isFullScreen())
+        {
+            showNormal();
+        }
+        else
+        {
+            showFullScreen();
+        }
+    }
+    else
+
+    {
+        emit passKeyPressEvent(event);
+    }
+}
+
+void RenderWidget::checkScale()
+{
+    float image_ratio = m_resolution.x() / float(m_resolution.y());
+    float window_ratio = width() / float(height());
+    switch(m_fit_mode)
+    {
+    case FM_HEIGHT:
+        m_scale = QPointF(1.0*image_ratio,1.0);
+        break;
+    case FM_WIDTH:
+        m_scale = QPointF(window_ratio,window_ratio/image_ratio);
+        break;
+    case FM_BEST:
+        if(window_ratio /image_ratio > 1)
+            m_scale = QPointF(1.0*image_ratio,1.0);
+        else
+            m_scale = QPointF(window_ratio,window_ratio/image_ratio);
+
+
+    }
+}
+
 void RenderWidget::resizeGL(int w, int h)
 {
+    qreal ratio = qreal(w)/h;
     glViewport(0,0,w,h);
+    QMatrix4x4 projection;
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    projection.ortho(-ratio,ratio,-1,1,-1,1);
+    glMultMatrixd(projection.data());
+    checkScale();
 }
 
 void RenderWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_MODELVIEW_MATRIX);
+    if(m_volume.expired())
+        return;
+    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glScalef(m_scale,m_scale,1.0);
+    glScalef(m_scale.x(),m_scale.y(),1.0);
+    //TODO: Implement rotation
 
     glBindTexture(GL_TEXTURE_2D, m_page_texture_id);
     glBegin(GL_TRIANGLE_STRIP);

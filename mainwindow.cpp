@@ -3,6 +3,8 @@
 #include <QtGui/QMenuBar>
 #include <QtGui/QFileDialog>
 #include <QDebug>
+#include <QKeyEvent>
+#include <limits>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -16,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(openAct, SIGNAL(triggered()), this, SLOT(openFile()));
 
     QAction *createRenderWidgetAct = new QAction( tr("&Render Window"), this );
-//    createRenderWidgetAct->setShortcuts(QKeySequence::Open);
+    //    createRenderWidgetAct->setShortcuts(QKeySequence::Open);
     createRenderWidgetAct->setStatusTip(tr("New Render Window"));
     connect(createRenderWidgetAct, SIGNAL(triggered()), this, SLOT(createRenderWidget()));
     //Quit action
@@ -36,7 +38,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     RenderWidget * main_widget = createRenderWidget();
     main_widget->setParent(this);
-//    main_widget->setMain();
+    //    main_widget->setMain();
 
     setCentralWidget(main_widget);
 
@@ -59,6 +61,7 @@ RenderWidget * MainWindow::createRenderWidget()
     connect(this, SIGNAL(closeAll()),
             widget, SLOT(close()));
     connect(widget, SIGNAL(renderWidgetClosing(uint)), this, SLOT(renderWidgetClosed(uint)));
+    connect(widget, SIGNAL(passKeyPressEvent(QKeyEvent*)), this, SLOT(keyPressEvent(QKeyEvent*)));
     widget->show();
     m_renderwidgets.insert(std::unique_ptr<RenderWidgetResource>(new RenderWidgetResource(widget,m_renderwidgets.size())));
     m_renderer_mutex.unlock();
@@ -123,6 +126,51 @@ void MainWindow::renderWidgetClosed(uint index)
     if(need_to_unlock_myself)
     {
         m_renderer_mutex.unlock();
+    }
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    switch(event->key())
+    {
+    case Qt::Key_Left:
+    case Qt::Key_Up:
+    case Qt::Key_PageUp:
+        previousPage();
+        break;
+    case Qt::Key_Right:
+    case Qt::Key_Down:
+    case Qt::Key_PageDown:
+    case Qt::Key_Space:
+        nextPage();
+        break;
+    case Qt::Key_Home:
+        changePage(0);
+        break;
+    case Qt::Key_End:
+        changePage(std::numeric_limits<uint>::max());
+        break;
+    case Qt::Key_F:
+        if(isFullScreen())
+        {
+            showNormal();
+            menuBar()->show();
+        }
+        else
+        {
+            showFullScreen();
+            if(menuBar()->isHidden())
+            {
+                menuBar()->show();
+            }
+            else
+            {
+                menuBar()->hide();
+            }
+        }
+        break;
+    default:
+        QMainWindow::keyPressEvent(event);
     }
 }
 

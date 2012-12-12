@@ -19,7 +19,7 @@ public:
     ~MainWindow();
     private:
     QDockWidget * m_control;
-    uint m_page_num;
+    uint m_page_num = 0;
     std::shared_ptr<const MangaVolume> m_volume;
     std::mutex m_renderer_mutex;
 
@@ -36,10 +36,13 @@ public:
     void renderWidgetClosed(uint index);
     RenderWidget * createRenderWidget();
     void closeEvent(QCloseEvent *event);
+    void keyPressEvent(QKeyEvent *);
 
     signals:
     void newMangaVolume(std::shared_ptr<const MangaVolume> volume);
     void newPage(uint page);
+    void wantNewPage();
+    void wantPrevPage();
     void closeAll();
 
     void pageChanged();
