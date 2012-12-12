@@ -4,8 +4,10 @@
 #include <QMainWindow>
 #include <vector>
 #include <memory>
+#include <mutex>
+#include <set>
 #include "mangavolume.h"
-class RenderWidget;
+#include "renderwidget.h"
 class QDockWidget;
 
 class MainWindow : public QMainWindow
@@ -17,20 +19,28 @@ public:
     ~MainWindow();
     private:
     QDockWidget * m_control;
-    uint m_num_renderers;
-    uint m_index;
-    std::unique_ptr<MangaVolume> m_volume;
+    uint m_page_num;
+    std::shared_ptr<const MangaVolume> m_volume;
+    std::mutex m_renderer_mutex;
 
     private:
-    RenderWidget * createRenderWidget();
+    //Don't need need to be smart because I'm taking care of this myself
+    std::set< std::unique_ptr<RenderWidgetResource> > m_renderwidgets;
+
     public slots:
     void openFile();
     void openFile(const QString & filepath);
     void nextPage();
     void previousPage();
-    void changePage(uint i);
+    void changePage(uint index);
+    void renderWidgetClosed(uint index);
+    RenderWidget * createRenderWidget();
+    void closeEvent(QCloseEvent *event);
 
     signals:
+    void newMangaVolume(std::shared_ptr<const MangaVolume> volume);
+    void newPage(uint page);
+    void closeAll();
 
     void pageChanged();
 };

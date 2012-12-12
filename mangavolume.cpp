@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QDir>
 
+const QImage MangaVolume::m_null_image = QImage();
 MangaVolume::MangaVolume(const QString filepath, QObject *parent) :
     QObject(parent)
 {
@@ -27,9 +28,9 @@ MangaVolume::MangaVolume(const QString filepath, QObject *parent) :
         QString hash = QString(QCryptographicHash::hash(
                                    (
                                        toHash
-                                    ).toAscii(),QCryptographicHash::Sha1).toHex());
+                                       ).toAscii(),QCryptographicHash::Sha1).toHex());
         m_file_dir = tr("/tmp/") + filename_split.join(tr(".")) + tr("-") + hash;
-    qWarning() << "Making directory: " << m_file_dir;
+        qWarning() << "Making directory: " << m_file_dir;
         dir = QDir(m_file_dir);
     }while (dir.exists());
     dir.mkpath(".");
@@ -64,9 +65,19 @@ MangaVolume::MangaVolume(const QString filepath, QObject *parent) :
         readImages(m_file_dir);
         for(MangaPage& page: m_pages)
         {
+            page.filename.size();
             //TODO: processing?
         }
     }
+
+}
+
+const QImage & MangaVolume::getImage(uint page_num) const
+{
+    if(page_num >= m_pages.size())
+        return m_null_image;
+    else
+        return m_pages.at(page_num).data;
 
 }
 
