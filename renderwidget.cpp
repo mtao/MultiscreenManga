@@ -12,6 +12,7 @@ RenderWidget::RenderWidget(std::mutex & mutex, uint page, uint index, std::share
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setPage(m_page_num);
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 void RenderWidget::setMangaVolume(std::shared_ptr<const MangaVolume> volume)
@@ -54,27 +55,51 @@ void RenderWidget::initializeGL()
 
 void RenderWidget::keyPressEvent(QKeyEvent *event)
 {
-    if(event->key() == Qt::Key_F && m_index != 0)
+    switch(event->key())
     {
-        if(isFullScreen())
+    case  Qt::Key_F:
+        if(m_index == 0)
         {
-            showNormal();
+            emit passKeyPressEvent(event);
         }
         else
         {
-            showFullScreen();
+            if(isFullScreen())
+            {
+                showNormal();
+            }
+            else
+            {
+                showFullScreen();
+            }
         }
-    }
-    else
-
-    {
+        break;
+    case Qt::Key_R:
+        if(event->modifiers() & Qt::ShiftModifier)
+            rotatePage(-1);
+        else
+            rotatePage(1);
+        break;
+    default:
         emit passKeyPressEvent(event);
     }
 }
 
+void RenderWidget::rotatePage(int i)
+{
+    m_rotation = (m_rotation + i) % 4;
+    checkScale();
+
+    update();
+}
+
 void RenderWidget::checkScale()
 {
-    float image_ratio = m_resolution.x() / float(m_resolution.y());
+    float image_ratio=1;
+    if(m_rotation % 2 == 0)
+        image_ratio = m_resolution.x() / float(m_resolution.y());
+    else
+        image_ratio = m_resolution.y() / float(m_resolution.x());
     float window_ratio = width() / float(height());
     switch(m_fit_mode)
     {
@@ -114,7 +139,7 @@ void RenderWidget::paintGL()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glScalef(m_scale.x(),m_scale.y(),1.0);
-    //TODO: Implement rotation
+    glRotatef(90*m_rotation, 0,0,1);
 
     glBindTexture(GL_TEXTURE_2D, m_page_texture_id);
     glBegin(GL_TRIANGLE_STRIP);

@@ -19,7 +19,6 @@ class RenderWidget : public QGLWidget, protected QGLFunctions
     Q_OBJECT
 public:
     enum FIT_MODE{FM_WIDTH, FM_HEIGHT, FM_BEST};
-    enum ROTATE_MODE{RM_NORMAL, RM_LEFT, RM_RIGHT, RM_INVERT};
     explicit RenderWidget(
             std::mutex & mutex
             , uint page_num
@@ -46,6 +45,7 @@ public slots:
     void paintGL();
     void initializeGL();
     void resizeGL(int w, int h);
+    void rotatePage(int i);
     float color=0;
     
     private:
@@ -57,6 +57,7 @@ public slots:
     QPointF m_scale;
     QPoint m_resolution;
     FIT_MODE m_fit_mode = FM_BEST;
+    uint m_rotation = 0;
     bool m_no_index_cleanup = false;
     const GLuint m_vertex_attribute = 0;
     void checkScale();

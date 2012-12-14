@@ -27,6 +27,8 @@ public:
     //Don't need need to be smart because I'm taking care of this myself
     std::set< std::unique_ptr<RenderWidgetResource> > m_renderwidgets;
 
+    protected:
+    void setFocus();
     public slots:
     void openFile();
     void openFile(const QString & filepath);
@@ -37,6 +39,7 @@ public:
     RenderWidget * createRenderWidget();
     void closeEvent(QCloseEvent *event);
     void keyPressEvent(QKeyEvent *);
+
 
     signals:
     void newMangaVolume(std::shared_ptr<const MangaVolume> volume);
