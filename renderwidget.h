@@ -51,15 +51,15 @@ public slots:
     private:
     std::weak_ptr<const MangaVolume> m_volume;
     uint m_index;
-    uint m_page_num = 0;
+    uint m_page_num;
     GLuint m_page_texture_id;
     std::mutex & m_mutex;
     QPointF m_scale;
     QPoint m_resolution;
-    FIT_MODE m_fit_mode = FM_BEST;
-    uint m_rotation = 0;
-    bool m_no_index_cleanup = false;
-    const GLuint m_vertex_attribute = 0;
+    FIT_MODE m_fit_mode;
+    uint m_rotation;
+    bool m_no_index_cleanup ;
+    const GLuint m_vertex_attribute;
     void checkScale();
 
 

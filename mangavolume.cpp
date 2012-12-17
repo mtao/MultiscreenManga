@@ -10,6 +10,7 @@
 const QImage MangaVolume::m_null_image = QImage();
 MangaVolume::MangaVolume(const QString filepath, QObject *parent) :
     QObject(parent)
+      , m_do_cleanup(false)
 {
 
     QStringList path_split = filepath.split("/");

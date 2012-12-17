@@ -40,7 +40,7 @@ private:
 
     void cleanUp(const QString & path);
     void readImages(const QString & path);
-    bool m_do_cleanup = false;
+    bool m_do_cleanup;
 };
 
 #endif // MANGAVOLUME_H
