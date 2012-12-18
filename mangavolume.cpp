@@ -66,7 +66,7 @@ MangaVolume::MangaVolume(const QString filepath, QObject *parent) :
         readImages(m_file_dir);
         for(MangaPage& page: m_pages)
         {
-            page.filename.size();
+            page.getFilename().size();
             //TODO: processing?
         }
     }
@@ -78,7 +78,7 @@ const QImage & MangaVolume::getImage(uint page_num) const
     if(page_num >= m_pages.size())
         return m_null_image;
     else
-        return m_pages.at(page_num).data;
+        return m_pages.at(page_num).getData();
 
 }
 
