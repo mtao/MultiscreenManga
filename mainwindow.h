@@ -19,7 +19,7 @@ public:
     ~MainWindow();
     private:
     QDockWidget * m_control;
-    uint m_page_num = 0;
+    uint m_page_num;
     std::shared_ptr<const MangaVolume> m_volume;
     std::mutex m_renderer_mutex;
 

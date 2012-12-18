@@ -46,7 +46,7 @@ public slots:
     void initializeGL();
     void resizeGL(int w, int h);
     void rotatePage(int i);
-    float color=0;
+    float color;
     
     private:
     std::weak_ptr<const MangaVolume> m_volume;
@@ -73,8 +73,8 @@ public slots:
 #include <QDebug>
 struct RenderWidgetResource
 {
-    RenderWidget * widget=0;
-    uint index=0;
+    RenderWidget * widget;
+    uint index;
     RenderWidgetResource(RenderWidget*widget, uint index): widget(widget), index(index){}
     void decrementIndex()
     {
