@@ -7,7 +7,7 @@
 #include <limits>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+    : QMainWindow(parent), m_page_num(0)
 {
 
     setMenuBar(new QMenuBar(this));
