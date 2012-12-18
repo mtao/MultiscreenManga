@@ -6,18 +6,24 @@
 #include <QImage>
 #include <QDir>
 
-struct MangaPage
+class MangaPage
 {
+public:
     MangaPage(const QString & path): filepath(path)
       , filename(filepath.split("/").last())
       ,data(QImage(path))
     {}
 
-bool isNull()const {return data.isNull();}
+    bool isNull()const {return data.isNull();}
+    const QString & getFilepath()const {return filepath;}
+    const QString & getFilename()const {return filename;}
+    const QImage & getData()const {return data;}
 
-const QString filepath;
-const QString filename;
-const QImage data;
+
+private:
+    QString filepath;
+    QString filename;
+    QImage data;
 };
 
 class MangaVolume : public QObject
