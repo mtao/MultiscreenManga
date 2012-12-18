@@ -7,10 +7,11 @@
 
 
 RenderWidget::RenderWidget(std::mutex & mutex, uint page, uint index, std::shared_ptr<const MangaVolume> volume, MainWindow *parent) :
-    QGLWidget(parent), m_volume(volume), m_index(index), m_page_num(page+index), m_mutex(mutex)
+    QGLWidget(parent)
+  , color(0)
+  , m_volume(volume), m_index(index), m_page_num(page+index), m_mutex(mutex)
   , m_fit_mode(FM_BEST), m_rotation(0), m_no_index_cleanup(false), m_vertex_attribute(false)
   , m_vertexBuffer(QGLBuffer::VertexBuffer), m_program(new QGLShaderProgram(this))
-  , color(0)
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setPage(m_page_num);
