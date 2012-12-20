@@ -6,40 +6,43 @@
 #include <QKeyEvent>
 
 
-RenderWidget::RenderWidget(std::mutex & mutex, uint page, uint index, std::shared_ptr<const MangaVolume> volume, MainWindow *parent) :
-    QGLWidget(parent)
-  , color(0)
-  , m_volume(volume), m_index(index), m_page_num(page+index), m_mutex(mutex)
-  , m_fit_mode(FM_BEST), m_rotation(0), m_no_index_cleanup(false), m_vertex_attribute(false)
-  , m_vertexBuffer(QGLBuffer::VertexBuffer), m_program(new QGLShaderProgram(this))
-{
+RenderWidget::RenderWidget(
+        std::mutex & mutex, uint page, uint index,
+        std::shared_ptr<const MangaVolume> volume, MainWindow *parent)
+    : QGLWidget(parent)
+    , color(0)
+    , m_volume(volume), m_index(index), m_page_num(page+index)
+    , m_mutex(mutex)
+    , m_fit_mode(FM_BEST), m_rotation(0), m_no_index_cleanup(false)
+    , m_vertex_attribute(false)
+    , m_vertexBuffer(QGLBuffer::VertexBuffer)
+    , m_program(new QGLShaderProgram(this)) {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setPage(m_page_num);
     setFocusPolicy(Qt::StrongFocus);
 }
 
-void RenderWidget::setMangaVolume(std::shared_ptr<const MangaVolume> volume)
-{
+void RenderWidget::setMangaVolume(std::shared_ptr<const MangaVolume> volume) {
     m_volume = volume;
     setPage(0);
 }
 
-void RenderWidget::setPage(uint page)
-{
+void RenderWidget::setPage(uint page) {
     m_page_num = page + m_index;
     auto volume_ptr = m_volume.lock();
     qWarning() << "Openning page: " << page;
-    if(!volume_ptr)
+    if (!volume_ptr) {
         return;
+    }
 
     const QImage & img = volume_ptr->getImage(m_page_num);
-    if(img.isNull())
-    {
-        qWarning() << "Index " << m_index << " reports that there is no page " << m_page_num;
+    if (img.isNull()) {
+        qWarning() << "Index " << m_index
+            << " reports that there is no page " << m_page_num;
         return;
     }
     makeCurrent();
-    m_resolution = QPoint(img.width(),img.height());
+    m_resolution = QPoint(img.width(), img.height());
     m_page_texture_id = bindTexture(img);
     checkScale();
 
@@ -47,119 +50,104 @@ void RenderWidget::setPage(uint page)
     update();
 }
 
-void RenderWidget::initializeGL()
-{
+void RenderWidget::initializeGL() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_TEXTURE_2D);
-    qglClearColor(QColor(0,0,0));
-
+    qglClearColor(QColor(0, 0, 0));
 }
 
-void RenderWidget::keyPressEvent(QKeyEvent *event)
-{
-    switch(event->key())
-    {
+void RenderWidget::keyPressEvent(QKeyEvent *event) {
+    switch (event->key()) {
     case  Qt::Key_F:
-        if(m_index == 0)
-        {
+        if (m_index == 0) {
             emit passKeyPressEvent(event);
-        }
-        else
-        {
-            if(isFullScreen())
-            {
+        } else {
+            if (isFullScreen()) {
                 showNormal();
-            }
-            else
-            {
+            } else {
                 showFullScreen();
             }
         }
         break;
     case Qt::Key_R:
-        if(event->modifiers() & Qt::ShiftModifier)
+        if (event->modifiers() & Qt::ShiftModifier) {
             rotatePage(-1);
-        else
+        } else {
             rotatePage(1);
+        }
         break;
     default:
         emit passKeyPressEvent(event);
     }
 }
 
-void RenderWidget::rotatePage(int i)
-{
+void RenderWidget::rotatePage(int i) {
     m_rotation = (m_rotation + i) % 4;
     checkScale();
 
     update();
 }
 
-void RenderWidget::checkScale()
-{
-    float image_ratio=1;
-    if(m_rotation % 2 == 0)
-        image_ratio = m_resolution.x() / float(m_resolution.y());
-    else
-        image_ratio = m_resolution.y() / float(m_resolution.x());
-    float window_ratio = width() / float(height());
-    switch(m_fit_mode)
-    {
+void RenderWidget::checkScale() {
+    float image_ratio = 1;
+    if (m_rotation % 2 == 0) {
+        image_ratio = m_resolution.x() / static_cast<float>(m_resolution.y());
+    } else {
+        image_ratio = m_resolution.y() / static_cast<float>(m_resolution.x());
+    }
+    float window_ratio = width() / static_cast<float>(height());
+    switch (m_fit_mode) {
     case FM_HEIGHT:
-        m_scale = QPointF(1.0*image_ratio,1.0);
+        m_scale = QPointF(1.0*image_ratio, 1.0);
         break;
     case FM_WIDTH:
-        m_scale = QPointF(window_ratio,window_ratio/image_ratio);
+        m_scale = QPointF(window_ratio, window_ratio/image_ratio);
         break;
     case FM_BEST:
-        if(window_ratio /image_ratio > 1)
-            m_scale = QPointF(1.0*image_ratio,1.0);
-        else
-            m_scale = QPointF(window_ratio,window_ratio/image_ratio);
-
-
+        if (window_ratio /image_ratio > 1) {
+            m_scale = QPointF(1.0*image_ratio, 1.0);
+        } else {
+            m_scale = QPointF(window_ratio, window_ratio/image_ratio);
+        }
     }
 }
 
-void RenderWidget::resizeGL(int w, int h)
-{
+void RenderWidget::resizeGL(int w, int h) {
     qreal ratio = qreal(w)/h;
-    glViewport(0,0,w,h);
+    glViewport(0, 0, w, h);
     QMatrix4x4 projection;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    projection.ortho(-ratio,ratio,-1,1,-1,1);
+    projection.ortho(-ratio, ratio, -1, 1, -1, 1);
     glMultMatrixd(projection.data());
     checkScale();
 }
 
-void RenderWidget::paintGL()
-{
+void RenderWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if(m_volume.expired())
+    if (m_volume.expired()) {
         return;
+    }
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glScalef(m_scale.x(),m_scale.y(),1.0);
-    glRotatef(90*m_rotation, 0,0,1);
+    glScalef(m_scale.x(), m_scale.y(), 1.0);
+    glRotatef(90*m_rotation, 0, 0, 1);
 
     glBindTexture(GL_TEXTURE_2D, m_page_texture_id);
     glBegin(GL_TRIANGLE_STRIP);
-    glTexCoord2d(0.0,0.0);    glVertex2f(-1,-1);
-    glTexCoord2d(1.0,0.0);    glVertex2f(1,-1);
-    glTexCoord2d(0.0,1.0);    glVertex2f(-1,1);
-    glTexCoord2d(1.0,1.0);    glVertex2f(1,1);
+    glTexCoord2d(0.0, 0.0);    glVertex2f(-1, -1);
+    glTexCoord2d(1.0, 0.0);    glVertex2f(1, -1);
+    glTexCoord2d(0.0, 1.0);    glVertex2f(-1, 1);
+    glTexCoord2d(1.0, 1.0);    glVertex2f(1, 1);
     glEnd();
 }
 
-void RenderWidget::setIndex(int index)
-{
+void RenderWidget::setIndex(int index) {
     m_index = index;
 }
 
-RenderWidget::~RenderWidget()
-{
+RenderWidget::~RenderWidget() {
     m_mutex.lock();
     emit renderWidgetClosing(m_index);
     m_mutex.unlock();
