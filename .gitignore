@@ -2,7 +2,6 @@
 *.swp
 *.o
 moc_*
-Makefile
 *.user
 MultiscreenManga
 build/
