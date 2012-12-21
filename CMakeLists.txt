@@ -28,4 +28,4 @@ ADD_DEFINITIONS(${QT_DEFINITIONS})
 ADD_EXECUTABLE(MultiscreenManga
     ${MultiscreenManga_SOURCES}
     ${MultiscreenManga_HEADERS_MOC})
-TARGET_LINK_LIBRARIES(MultiscreenManga ${QT_LIBRARIES})
+TARGET_LINK_LIBRARIES(MultiscreenManga ${QT_LIBRARIES} GL)
