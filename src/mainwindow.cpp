@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "include/mainwindow.h"
 #include <QtGui/QDockWidget>
 #include <QtGui/QMenuBar>
 #include <QtGui/QFileDialog>
