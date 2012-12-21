@@ -1,5 +1,5 @@
-#include "renderwidget.h"
-#include "mainwindow.h"
+#include "include/renderwidget.h"
+#include "include/mainwindow.h"
 #include <QDebug>
 #include <QtOpenGL/QGLShader>
 #include <QMatrix4x4>
