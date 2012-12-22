@@ -7,9 +7,10 @@
 #include <QDebug>
 #include <QDir>
 
-const QImage MangaVolume::m_null_image = QImage();
-MangaVolume::MangaVolume(const QString filepath, QObject *parent)
-    : QObject(parent) , m_do_cleanup(false) {
+
+
+CompressedFileMangaVolume::CompressedFileMangaVolume(const QString filepath, QObject *parent)
+    : MangaVolume(true,parent) {
     QStringList path_split = filepath.split("/");
     QString filename = path_split.last();
     QStringList filename_split = filename.split(".");
@@ -26,10 +27,10 @@ MangaVolume::MangaVolume(const QString filepath, QObject *parent)
         QString toHash = filepath+time.toString();
         qWarning() <<  toHash;
         QString hash = QString(QCryptographicHash::hash(
-                    toHash.toAscii(),
-                    QCryptographicHash::Sha1).toHex());
+                                   toHash.toAscii(),
+                                   QCryptographicHash::Sha1).toHex());
         m_file_dir = tr("/tmp/") + filename_split.join(tr("."))
-            + tr("-") + hash;
+                + tr("-") + hash;
         qWarning() << "Making directory: " << m_file_dir;
         dir = QDir(m_file_dir);
     } while (dir.exists());
@@ -51,6 +52,7 @@ MangaVolume::MangaVolume(const QString filepath, QObject *parent)
         arguments << filepath;
         arguments << m_file_dir;
     }
+
     qWarning() << "Open file?: " << filename;
     QProcess * myProcess = new QProcess(this);
     myProcess->start(program, arguments);
@@ -66,23 +68,24 @@ MangaVolume::MangaVolume(const QString filepath, QObject *parent)
     }
 }
 
-const QImage & MangaVolume::getImage(uint page_num) const {
+
+std::shared_ptr<const QImage> CompressedFileMangaVolume::getImage(uint page_num, QPointF) const {
     if (page_num >= m_pages.size()) {
-        return m_null_image;
+        return std::shared_ptr<const QImage>();
     } else {
-        return m_pages.at(page_num).getData();
+        return std::shared_ptr<const QImage>(&m_pages.at(page_num).getData());
     }
 }
 
 
-void MangaVolume::readImages(const QString & path) {
+void CompressedFileMangaVolume::readImages(const QString & path) {
     QFileInfo fileInfo(path);
     if (fileInfo.isDir()) {
         QDir dir(path);
         QStringList fileList = dir.entryList(
-                QDir::AllEntries | QDir::NoDotAndDotDot
-                | QDir::NoSymLinks | QDir::Hidden, QDir::Name
-                | QDir::IgnoreCase);
+                    QDir::AllEntries | QDir::NoDotAndDotDot
+                    | QDir::NoSymLinks | QDir::Hidden, QDir::Name
+                    | QDir::IgnoreCase);
         for (int i = 0; i < fileList.count(); ++i) {
             readImages(path + tr("/")+fileList.at(i));
         }
@@ -94,14 +97,14 @@ void MangaVolume::readImages(const QString & path) {
 }
 
 
-void MangaVolume::cleanUp(const QString &path) {
+void CompressedFileMangaVolume::cleanUp(const QString &path) {
     QFileInfo fileInfo(path);
     if (fileInfo.isDir()) {
         QDir dir(path);
         QStringList fileList = dir.entryList(
-                QDir::AllEntries | QDir::NoDotAndDotDot
-                | QDir::NoSymLinks | QDir::Hidden, QDir::Name
-                | QDir::IgnoreCase);
+                    QDir::AllEntries | QDir::NoDotAndDotDot
+                    | QDir::NoSymLinks | QDir::Hidden, QDir::Name
+                    | QDir::IgnoreCase);
         for (int i = 0; i < fileList.count(); ++i) {
             cleanUp(path + tr("/")+fileList.at(i));
         }
@@ -112,8 +115,38 @@ void MangaVolume::cleanUp(const QString &path) {
 }
 
 
-MangaVolume::~MangaVolume() {
-    if (m_do_cleanup) {
-        cleanUp(m_file_dir);
+
+PDFMangaVolume::PDFMangaVolume(const QString filepath, QObject *parent): MangaVolume(false, parent){
+    m_doc.reset(Poppler::Document::load(filepath));
+    m_doc->setRenderHint(Poppler::Document::Antialiasing);
+    m_doc->setRenderHint(Poppler::Document::TextAntialiasing);
+}
+
+std::shared_ptr<const QImage> PDFMangaVolume::getImage(uint page_num, QPointF scale) const {
+    if(scale.x() != scale.x()) {
+        scale.setX(1.0f);
     }
+    if(scale.y() != scale.y()) {
+        scale.setY(1.0f);
+    }
+
+    std::shared_ptr<const QImage> img;
+    qWarning() << scale;
+    if(m_doc && page_num < m_doc->numPages()) {
+        img = std::shared_ptr<const QImage>(
+                    new const QImage(m_doc->page(page_num)->renderToImage(72.0f*scale.x(),72.0f*scale.y()))
+                        );
+                //m_active_pages.insert(img);
+    } else {
+        return std::shared_ptr<const QImage>();
+    }/*
+    for (auto it = m_active_pages.begin(); it != m_active_pages.end();) {
+        if(!*it)
+        {
+            it = m_active_pages.erase(it);
+        } else {
+            ++it;
+        }
+    }*/
+    return img;
 }

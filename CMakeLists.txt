@@ -6,6 +6,7 @@ SET(CMAKE_LIBRARY_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
 SET(CMAKE_ARCHIVE_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
 
 ADD_DEFINITIONS(-std=c++0x)
+ADD_DEFINITIONS(-Werror)
 
 # Include dirs
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -16,6 +17,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 SET(MultiscreenManga_SOURCES src/main.cpp  src/mainwindow.cpp  src/mangavolume.cpp  src/renderwidget.cpp)
 # Include files
 SET(MultiscreenManga_HEADERS include/mainwindow.h include/mangavolume.h include/renderwidget.h)
+SET(MultiscreenManga_SOURCES ${MultiscreenManga_SOURCES} ${MultiscreenManga_HEADERS})
 
 # Qt
 FIND_PACKAGE(Qt4 REQUIRED)
@@ -28,4 +30,4 @@ ADD_DEFINITIONS(${QT_DEFINITIONS})
 ADD_EXECUTABLE(MultiscreenManga
     ${MultiscreenManga_SOURCES}
     ${MultiscreenManga_HEADERS_MOC})
-TARGET_LINK_LIBRARIES(MultiscreenManga ${QT_LIBRARIES} GL)
+TARGET_LINK_LIBRARIES(MultiscreenManga ${QT_LIBRARIES} GL poppler-qt4)

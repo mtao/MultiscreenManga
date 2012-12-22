@@ -67,7 +67,7 @@ RenderWidget * MainWindow::createRenderWidget() {
             SLOT(keyPressEvent(QKeyEvent*)));
     widget->show();
     m_renderwidgets.insert(std::unique_ptr<RenderWidgetResource>(
-            new RenderWidgetResource(widget, m_renderwidgets.size())));
+                               new RenderWidgetResource(widget, m_renderwidgets.size())));
     m_renderer_mutex.unlock();
 
     return widget;
@@ -83,7 +83,12 @@ void MainWindow::openFile() {
 }
 
 void MainWindow::openFile(const QString & filepath) {
-    m_volume.reset(new MangaVolume(filepath, this));
+    if (filepath.endsWith(tr(".pdf"))) {
+        m_volume.reset(new PDFMangaVolume(filepath, this));
+    }
+    else if (filepath.endsWith(tr(".zip")) || filepath.endsWith(tr(".rar"))) {
+        m_volume.reset(new CompressedFileMangaVolume(filepath, this));
+    }
     m_page_num = 0;
     emit newMangaVolume(m_volume);
 }
@@ -98,8 +103,11 @@ void MainWindow::previousPage() {
 
 void MainWindow::changePage(uint index) {
     m_page_num = index;
+    if (m_page_num < 0) {
+        m_page_num = 0;
+    }
     if (m_page_num >= m_volume->size()) {
-        m_page_num = m_volume->size()-1-m_renderwidgets.size();
+        m_page_num = m_volume->size()-m_renderwidgets.size();
     }
     emit newPage(m_page_num);
 }
@@ -108,8 +116,8 @@ void MainWindow::renderWidgetClosed(uint index) {
     bool need_to_unlock_myself = false;
     if (m_renderer_mutex.try_lock()) {
         qWarning() \
-            << "Someone didn't lock mutex before starting index decrementing!" \
-            << " I've locked it for myself now";
+                << "Someone didn't lock mutex before starting index decrementing!" \
+                << " I've locked it for myself now";
         need_to_unlock_myself = true;
     }
 

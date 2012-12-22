@@ -4,7 +4,7 @@
 #include <QtOpenGL/QGLShader>
 #include <QMatrix4x4>
 #include <QKeyEvent>
-
+#include <memory>
 
 RenderWidget::RenderWidget(
         std::mutex & mutex, uint page, uint index,
@@ -18,7 +18,7 @@ RenderWidget::RenderWidget(
     , m_vertexBuffer(QGLBuffer::VertexBuffer)
     , m_program(new QGLShaderProgram(this)) {
     setAttribute(Qt::WA_DeleteOnClose, true);
-    setPage(m_page_num);
+    setPage(page);
     setFocusPolicy(Qt::StrongFocus);
 }
 
@@ -35,15 +35,15 @@ void RenderWidget::setPage(uint page) {
         return;
     }
 
-    const QImage & img = volume_ptr->getImage(m_page_num);
-    if (img.isNull()) {
+    std::shared_ptr<const QImage> img = volume_ptr->getImage(m_page_num);
+    if (!img) {
         qWarning() << "Index " << m_index
-            << " reports that there is no page " << m_page_num;
+                   << " reports that there is no page " << m_page_num;
         return;
     }
     makeCurrent();
-    m_resolution = QPoint(img.width(), img.height());
-    m_page_texture_id = bindTexture(img);
+    m_resolution = QPoint(img->width(), img->height());
+    m_page_texture_id = bindTexture(*img);
     checkScale();
 
     qWarning() << "Done loading page";
@@ -122,6 +122,11 @@ void RenderWidget::resizeGL(int w, int h) {
     projection.ortho(-ratio, ratio, -1, 1, -1, 1);
     glMultMatrixd(projection.data());
     checkScale();
+    if (auto vol_ptr = m_volume.lock()) {
+        if(vol_ptr->refreshOnResize()) {
+            vol_ptr->getImage(m_page_num, m_scale);
+        }
+    }
 }
 
 void RenderWidget::paintGL() {
