@@ -43,28 +43,54 @@ CompressedFileMangaVolume::CompressedFileMangaVolume(const QString filepath, QOb
     QString program = "";
     QStringList arguments;
     if (filename.endsWith(tr(".zip"))) {
-        program = tr("/usr/bin/unzip");
+        program = tr("unzip");
         arguments << tr("-d") << m_file_dir;
         arguments << filepath;
     } else if (filename.endsWith(tr(".rar"))) {
-        program = tr("/usr/bin/unrar");
+        program = tr("unrar");
         arguments << tr("x");
         arguments << filepath;
         arguments << m_file_dir;
+    } else {
+        qWarning() << "Unknown filetype for file " << filename;
+        return;
     }
 
     qWarning() << "Open file?: " << filename;
     QProcess * myProcess = new QProcess(this);
+
+    // Start the extraction program
     myProcess->start(program, arguments);
-    myProcess->waitForFinished();
-    if (myProcess->exitCode() ==0) {
-        qWarning() << "Extracted successfully";
-        m_do_cleanup = true;
-        readImages(m_file_dir);
-        for (const MangaPage& page: m_pages) {
-            page.getFilename().size();
-            // TODO(mtao): processing?
+
+    // Check to make sure it started correctly
+    if (!myProcess->waitForStarted()) {
+        switch (myProcess->error()) {
+        case QProcess::FailedToStart:
+            qWarning() << "Failed to start program" << program << ". Is it installed correctly?";
+            break;
+        case QProcess::Crashed:
+            qWarning() << "Program" << program << "crashed.";
+            break;
+        default:
+            qWarning() << "QProcess::ProcessError code " << myProcess->error();
         }
+        return;
+    }
+
+    // Check to make sure it finished correctly
+    if (!myProcess->waitForFinished()) {
+        qWarning() << program << "was unable to extract file " << filepath;
+        // TODO(umbrant): capture stdout/stderr to show the user
+        return;
+    }
+
+    // Successful extraction
+    qWarning() << "Extracted successfully";
+    m_do_cleanup = true;
+    readImages(m_file_dir);
+    for (const MangaPage& page: m_pages) {
+      page.getFilename().size();
+      // TODO(mtao): processing?
     }
 }
 
