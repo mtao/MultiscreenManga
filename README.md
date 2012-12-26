@@ -7,11 +7,11 @@ Requirements
 ===========
 
 * Qt 4 headers (`apt-get install libqt4-dev`)
-* qmake
+* Cmake
 
 Qt Creator is also recommended as a nice IDE.
 
 Build Instructions
 ==================
 
-    $ qmake; make;
+    $ cd MultiscreenManga; mkdir build; cd build; cmake ..; make;
