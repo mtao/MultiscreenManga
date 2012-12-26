@@ -2,5 +2,5 @@ all:
 	mkdir -p build
 	cd build && cmake .. && make
 
-clean: build
+clean:
 	rm -rf build/
