@@ -73,7 +73,7 @@ std::shared_ptr<const QImage> CompressedFileMangaVolume::getImage(uint page_num,
     if (page_num >= m_pages.size()) {
         return std::shared_ptr<const QImage>();
     } else {
-        return std::shared_ptr<const QImage>(&m_pages.at(page_num).getData());
+        return m_pages.at(page_num).getData();
     }
 }
 

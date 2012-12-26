@@ -14,25 +14,25 @@ class MangaPage
 public:
     MangaPage(const QString & path): filepath(path)
       , filename(filepath.split("/").last())
-      ,data(QImage(path))
-    {}
+      ,data(new QImage(path))
+    {}/*
     MangaPage(const QImage & data, const QString & path):
         filepath(path)
       , filename(filepath.split("/").last())
       , data(data)
-    {}
+    {}*/
 
 
-    bool isNull()const {return data.isNull();}
+    bool isNull()const {if(!data) return true; return data->isNull();}
     const QString & getFilepath()const {return filepath;}
     const QString & getFilename()const {return filename;}
-    const QImage & getData()const {return data;}
+    std::shared_ptr<const QImage> getData()const {return data;}
 
 
 private:
     QString filepath;
     QString filename;
-    QImage data;
+    std::shared_ptr<QImage> data;
 };
 
 class MangaVolume : public QObject
