@@ -89,6 +89,10 @@ void MainWindow::openFile(const QString & filepath) {
     else if (filepath.endsWith(tr(".zip")) || filepath.endsWith(tr(".rar"))) {
         m_volume.reset(new CompressedFileMangaVolume(filepath, this));
     }
+    else {
+        QFileInfo fileInfo(filepath);
+        m_volume.reset(new DirectoryMangaVolume(fileInfo.dir().absolutePath(), this));
+    }
     m_page_num = 0;
     emit newMangaVolume(m_volume);
 }

@@ -7,10 +7,28 @@
 #include <QDebug>
 #include <QDir>
 
+const size_t num_extensions = 6;
+QString extensions[num_extensions] = {
+    "png",
+    "jpg",
+    "jpeg",
+    "tif",
+    "tiff",
+    "bmp"
+};
+const std::set<QString> DirectoryMangaVolume::m_valid_extensions(extensions,extensions+num_extensions);
 
+DirectoryMangaVolume::DirectoryMangaVolume(bool cleanup, QObject * parent)
+    : MangaVolume(cleanup, parent)
+{}
+DirectoryMangaVolume::DirectoryMangaVolume(const QString & dirpath, QObject *parent)
+    : MangaVolume(false, parent)
+{
+    readImages(dirpath);
+}
 
-CompressedFileMangaVolume::CompressedFileMangaVolume(const QString filepath, QObject *parent)
-    : MangaVolume(true,parent) {
+CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, QObject *parent)
+    : DirectoryMangaVolume(true,parent) {
     QStringList path_split = filepath.split("/");
     QString filename = path_split.last();
     QStringList filename_split = filename.split(".");
@@ -89,13 +107,13 @@ CompressedFileMangaVolume::CompressedFileMangaVolume(const QString filepath, QOb
     m_do_cleanup = true;
     readImages(m_file_dir);
     for (const MangaPage& page: m_pages) {
-      page.getFilename().size();
-      // TODO(mtao): processing?
+        page.getFilename().size();
+        // TODO(mtao): processing?
     }
 }
 
 
-std::shared_ptr<const QImage> CompressedFileMangaVolume::getImage(uint page_num, QPointF) const {
+std::shared_ptr<const QImage> DirectoryMangaVolume::getImage(uint page_num, QPointF) const {
     if (page_num >= m_pages.size()) {
         return std::shared_ptr<const QImage>();
     } else {
@@ -104,7 +122,7 @@ std::shared_ptr<const QImage> CompressedFileMangaVolume::getImage(uint page_num,
 }
 
 
-void CompressedFileMangaVolume::readImages(const QString & path) {
+void DirectoryMangaVolume::readImages(const QString & path) {
     QFileInfo fileInfo(path);
     if (fileInfo.isDir()) {
         QDir dir(path);
@@ -116,9 +134,16 @@ void CompressedFileMangaVolume::readImages(const QString & path) {
             readImages(path + tr("/")+fileList.at(i));
         }
     } else {
-        MangaPage img(path);
-        if (!img.isNull())
-            m_pages.push_back(img);
+        QStringList filename_split = path.split(".");
+        if ( m_valid_extensions.find(filename_split.last()) == m_valid_extensions.end() ) {
+            return;
+        } else {
+            MangaPage img(path);
+            if (!img.isNull()) {
+                m_pages.push_back(img);
+            }
+        }
+
     }
 }
 
@@ -161,8 +186,8 @@ std::shared_ptr<const QImage> PDFMangaVolume::getImage(uint page_num, QPointF sc
     if(m_doc && page_num < m_doc->numPages()) {
         img = std::shared_ptr<const QImage>(
                     new const QImage(m_doc->page(page_num)->renderToImage(72.0f*scale.x(),72.0f*scale.y()))
-                        );
-                //m_active_pages.insert(img);
+                    );
+        //m_active_pages.insert(img);
     } else {
         return std::shared_ptr<const QImage>();
     }/*
