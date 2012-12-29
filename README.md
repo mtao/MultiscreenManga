@@ -15,3 +15,7 @@ Build Instructions
 ==================
 
     $ cd MultiscreenManga; mkdir build; cd build; cmake ..; make;
+
+or more concisely:
+    
+    $ cd MultiscreenManga; make;
