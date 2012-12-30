@@ -1,4 +1,5 @@
 #include "include/mangavolume.h"
+#include "include/configuration.h"
 #include <QProcess>
 #include <QString>
 #include <QStringList>
@@ -7,16 +8,6 @@
 #include <QDebug>
 #include <QDir>
 
-const size_t num_extensions = 6;
-QString extensions[num_extensions] = {
-    "png",
-    "jpg",
-    "jpeg",
-    "tif",
-    "tiff",
-    "bmp"
-};
-const std::set<QString> DirectoryMangaVolume::m_valid_extensions(extensions,extensions+num_extensions);
 
 DirectoryMangaVolume::DirectoryMangaVolume(bool cleanup, QObject * parent)
     : MangaVolume(cleanup, parent)
@@ -134,16 +125,17 @@ void DirectoryMangaVolume::readImages(const QString & path) {
             readImages(path + tr("/")+fileList.at(i));
         }
     } else {
-        QStringList filename_split = path.split(".");
-        if ( m_valid_extensions.find(filename_split.last()) == m_valid_extensions.end() ) {
-            return;
-        } else {
+        QString extension = path.split(".").last();
+        Configuration* conf = new Configuration();
+        auto formats = conf->getSupportedImageFormats();
+        if (formats.contains(extension)) {
             MangaPage img(path);
             if (!img.isNull()) {
                 m_pages.push_back(img);
             }
+        } else {
+            qDebug() << "Skipping file with unknown extension " << path;
         }
-
     }
 }
 

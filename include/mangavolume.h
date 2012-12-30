@@ -1,6 +1,7 @@
 #ifndef MANGAVOLUME_H
 #define MANGAVOLUME_H
 
+#include "include/configuration.h"
 #include <QObject>
 #include <vector>
 #include <QImage>
