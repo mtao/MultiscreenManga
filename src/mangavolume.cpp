@@ -8,25 +8,69 @@
 #include <QDebug>
 #include <QDir>
 
+// DirectoryMangaVolume
 
 DirectoryMangaVolume::DirectoryMangaVolume(bool cleanup, QObject * parent)
     : MangaVolume(cleanup, parent)
 {}
-DirectoryMangaVolume::DirectoryMangaVolume(const QString & dirpath, QObject *parent)
-    : MangaVolume(false, parent)
-{
+
+DirectoryMangaVolume::DirectoryMangaVolume(const QString & dirpath, QObject *parent) 
+    : MangaVolume(false, parent) {
     readImages(dirpath);
 }
 
+uint DirectoryMangaVolume::size() const {
+    return m_pages.size();
+}
+
+uint DirectoryMangaVolume::numPages() const {
+    return size();
+}
+
+std::shared_ptr<const QImage> DirectoryMangaVolume::getImage(uint page_num, QPointF) const {
+    if (page_num >= m_pages.size()) {
+        return std::shared_ptr<const QImage>();
+    } else {
+        return m_pages.at(page_num).getData();
+    }
+}
+
+void DirectoryMangaVolume::readImages(const QString & path) {
+    QFileInfo fileInfo(path);
+    if (fileInfo.isDir()) {
+        QDir dir(path);
+        QStringList fileList = dir.entryList(
+                    QDir::AllEntries | QDir::NoDotAndDotDot
+                    | QDir::NoSymLinks | QDir::Hidden, QDir::Name
+                    | QDir::IgnoreCase);
+        for (int i = 0; i < fileList.count(); ++i) {
+            readImages(path + tr("/")+fileList.at(i));
+        }
+    } else {
+        QString extension = path.split(".").last();
+        Configuration* conf = new Configuration();
+        auto formats = conf->getSupportedImageFormats();
+        if (formats.contains(extension)) {
+            MangaPage img(path);
+            if (!img.isNull()) {
+                m_pages.push_back(img);
+            }
+        } else {
+            qDebug() << "Skipping file with unknown extension " << path;
+        }
+    }
+}
+
+// CompressedFileMangaVolume
+
 CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, QObject *parent)
-    : DirectoryMangaVolume(true,parent) {
+    : DirectoryMangaVolume(true, parent) {
     QStringList path_split = filepath.split("/");
     QString filename = path_split.last();
     QStringList filename_split = filename.split(".");
     if (filename_split.length() > 1) {
         filename_split.pop_back();
     }
-
 
     QDir dir;
     do {
@@ -44,10 +88,6 @@ CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, Q
         dir = QDir(m_file_dir);
     } while (dir.exists());
     dir.mkpath(".");
-
-
-
-
 
     QString program = "";
     QStringList arguments;
@@ -99,43 +139,6 @@ CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, Q
     readImages(m_file_dir);
 }
 
-
-std::shared_ptr<const QImage> DirectoryMangaVolume::getImage(uint page_num, QPointF) const {
-    if (page_num >= m_pages.size()) {
-        return std::shared_ptr<const QImage>();
-    } else {
-        return m_pages.at(page_num).getData();
-    }
-}
-
-
-void DirectoryMangaVolume::readImages(const QString & path) {
-    QFileInfo fileInfo(path);
-    if (fileInfo.isDir()) {
-        QDir dir(path);
-        QStringList fileList = dir.entryList(
-                    QDir::AllEntries | QDir::NoDotAndDotDot
-                    | QDir::NoSymLinks | QDir::Hidden, QDir::Name
-                    | QDir::IgnoreCase);
-        for (int i = 0; i < fileList.count(); ++i) {
-            readImages(path + tr("/")+fileList.at(i));
-        }
-    } else {
-        QString extension = path.split(".").last();
-        Configuration* conf = new Configuration();
-        auto formats = conf->getSupportedImageFormats();
-        if (formats.contains(extension)) {
-            MangaPage img(path);
-            if (!img.isNull()) {
-                m_pages.push_back(img);
-            }
-        } else {
-            qDebug() << "Skipping file with unknown extension " << path;
-        }
-    }
-}
-
-
 void CompressedFileMangaVolume::cleanUp(const QString &path) {
     QFileInfo fileInfo(path);
     if (fileInfo.isDir()) {
@@ -153,7 +156,7 @@ void CompressedFileMangaVolume::cleanUp(const QString &path) {
     }
 }
 
-
+// PDFMangaVolume
 
 PDFMangaVolume::PDFMangaVolume(const QString filepath, QObject *parent): MangaVolume(false, parent){
     m_doc.reset(Poppler::Document::load(filepath));
@@ -188,4 +191,12 @@ std::shared_ptr<const QImage> PDFMangaVolume::getImage(uint page_num, QPointF sc
         }
     }*/
     return img;
+}
+
+uint PDFMangaVolume::size() const {
+    if ( m_doc ) {
+        return m_doc->numPages();
+    } else {
+        return 0;
+    }
 }
