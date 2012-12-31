@@ -34,7 +34,7 @@ public:
     void openFile(const QString & filepath);
     void nextPage();
     void previousPage();
-    void changePage(uint index);
+    void changePage(int index);
     void renderWidgetClosed(uint index);
     RenderWidget * createRenderWidget();
     void closeEvent(QCloseEvent *event);

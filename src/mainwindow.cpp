@@ -110,14 +110,20 @@ void MainWindow::previousPage() {
     changePage(m_page_num-m_renderwidgets.size());
 }
 
-void MainWindow::changePage(uint index) {
+void MainWindow::changePage(int index) {
+    // Enforce preconditions on page number
+    if (index < 0) {
+        index = 0;
+    }
+    if (index >= m_volume->size()) {
+        index = m_volume->size()-m_renderwidgets.size();
+    }
+    // Skip if we're already at the requested page
+    if (m_page_num == index) {
+        return;
+    }
+    // Change to the new page
     m_page_num = index;
-    if (m_page_num < 0) {
-        m_page_num = 0;
-    }
-    if (m_page_num >= m_volume->size()) {
-        m_page_num = m_volume->size()-m_renderwidgets.size();
-    }
     emit newPage(m_page_num);
 }
 
