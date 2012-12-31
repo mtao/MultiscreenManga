@@ -28,9 +28,10 @@ void RenderWidget::setMangaVolume(std::shared_ptr<const MangaVolume> volume) {
 }
 
 void RenderWidget::setPage(uint page) {
+    qDebug() << __FUNCTION__ << page;
     m_page_num = page + m_index;
     auto volume_ptr = m_volume.lock();
-    qWarning() << "Openning page: " << page;
+    qWarning() << "Opening page: " << page;
     if (!volume_ptr) {
         return;
     }
