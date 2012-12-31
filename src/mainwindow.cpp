@@ -9,12 +9,14 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_page_num(0) {
 
+    config = std::make_shared<Configuration>();
+
     setMenuBar(new QMenuBar(this));
     QMenu *fileMenu = menuBar() -> addMenu(tr("&File"));
     QAction *openAct = new QAction(tr("&Open"), this);
     openAct->setShortcuts(QKeySequence::Open);
     openAct->setStatusTip(tr("Open"));
-    connect(openAct, SIGNAL(triggered()), this, SLOT(openFile()));
+    connect(openAct, SIGNAL(triggered()), this, SLOT(openRootVolume()));
 
     QAction *createRenderWidgetAct = new QAction(tr("&Render Window"), this);
     //    createRenderWidgetAct->setShortcuts(QKeySequence::Open);
@@ -54,8 +56,8 @@ RenderWidget * MainWindow::createRenderWidget() {
                 m_renderer_mutex
                 , m_page_num
                 , m_renderwidgets.size()
-                , m_volume);
-    connect(this, SIGNAL(newMangaVolume(std::shared_ptr<const MangaVolume>)),
+                , m_root_volume);
+    connect(this, SIGNAL(newRootMangaVolume(std::shared_ptr<const MangaVolume>)),
             widget, SLOT(setMangaVolume(std::shared_ptr<const MangaVolume>)));
     connect(this, SIGNAL(newPage(uint)),
             widget, SLOT(setPage(uint)));
@@ -78,28 +80,65 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     QMainWindow::closeEvent(event);
 }
 
-void MainWindow::openFile() {
-    QString filename = QFileDialog::getOpenFileName(0, tr("Choose file"), QString());
-    // filename is null if user hit cancel
+void MainWindow::openRootVolume() {
+    QFileDialog::Options options(QFileDialog::HideNameFilterDetails);
+    QString selectedFilter("");
+    QString filename = QFileDialog::getOpenFileName(
+            this,
+            tr("Choose file or directory"),
+            QDir::homePath(),
+            config->getSupportedFileFilters(),
+            &selectedFilter,
+            options);
+
     if (filename.isNull()) {
         return;
     }
-    openFile(filename);
+    openRootVolume(filename);
 }
 
-void MainWindow::openFile(const QString & filepath) {
-    if (filepath.endsWith(tr(".pdf"))) {
-        m_volume.reset(new PDFMangaVolume(filepath, this));
+void MainWindow::openRootVolume(const QString & filepath) {
+    std::shared_ptr<const MangaVolume> volume = openVolume(filepath);
+    if (volume == NULL) {
+        qWarning() << "Could not open path" << filepath;
+        return;
     }
-    else if (filepath.endsWith(tr(".zip")) || filepath.endsWith(tr(".rar"))) {
-        m_volume.reset(new CompressedFileMangaVolume(filepath, this));
+    m_root_volume.reset();
+    m_root_volume = volume;
+    m_page_num = 0;
+    emit newRootMangaVolume(m_root_volume);
+}
+
+std::shared_ptr<const MangaVolume> MainWindow::openVolume(const QString & filename) {
+    MangaVolume *volume;
+    if (filename.endsWith(tr(".pdf"))) {
+        volume = new PDFMangaVolume(filename, this);
+    }
+    else if (filename.endsWith(tr(".zip")) || filename.endsWith(tr(".rar"))) {
+        volume = new CompressedFileMangaVolume(filename, this);
     }
     else {
-        QFileInfo fileInfo(filepath);
-        m_volume.reset(new DirectoryMangaVolume(fileInfo.dir().absolutePath(), this));
+        QFileInfo fileInfo(filename);
+        QString extension = filename.split(".").last();
+        QString volPath = NULL;
+        if (fileInfo.isDir()) {
+            // If it's a directory, then use it as the volume root
+            volPath = fileInfo.absoluteFilePath();
+        } else if (config->getSupportedImageFormats().contains(extension)) {
+            // If it's a supported image file, use it's parent
+            volPath = fileInfo.absolutePath();
+        }
+
+        if (volPath != NULL) {
+            volume = new DirectoryMangaVolume(volPath, this);
+        } else {
+            qWarning() << "Specified path" << filename
+                << "is not a directory or recognized image format!";
+            return NULL;
+        }
     }
-    m_page_num = 0;
-    emit newMangaVolume(m_volume);
+    std::shared_ptr<const MangaVolume> volume_ptr(volume);
+    return volume_ptr;
 }
 
 void MainWindow::nextPage() {
@@ -110,14 +149,20 @@ void MainWindow::previousPage() {
     changePage(m_page_num-m_renderwidgets.size());
 }
 
-void MainWindow::changePage(uint index) {
+void MainWindow::changePage(int index) {
+    // Enforce preconditions on page number
+    if (index < 0) {
+        index = 0;
+    }
+    if (index >= m_root_volume->size()) {
+        index = m_root_volume->size()-m_renderwidgets.size();
+    }
+    // Skip if we're already at the requested page
+    if (m_page_num == index) {
+        return;
+    }
+    // Change to the new page
     m_page_num = index;
-    if (m_page_num < 0) {
-        m_page_num = 0;
-    }
-    if (m_page_num >= m_volume->size()) {
-        m_page_num = m_volume->size()-m_renderwidgets.size();
-    }
     emit newPage(m_page_num);
 }
 
