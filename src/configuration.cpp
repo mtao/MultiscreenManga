@@ -6,9 +6,8 @@ ConfigurationHidden::ConfigurationHidden()
 {
   // Read in Qt's reported supported image formats
   QList<QByteArray> formatsBytes = QImageReader::supportedImageFormats();
-  for (int i=0; i<formatsBytes.size(); i++) {
-    const QString* str = new QString(formatsBytes.at(i));
-    supportedImageFormats.push_back(*str);
+  for (auto && format: formatsBytes) {
+    supportedImageFormats.push_back(QString(format));
   }
 }
 
