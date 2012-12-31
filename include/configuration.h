@@ -21,6 +21,7 @@ private:
     static ConfigurationHidden & getInstance();
     ConfigurationHidden();
     QList<QString> supportedImageFormats;
+    QList<QString> supportedVolumeFormats;
 };
 
 class Configuration
@@ -30,6 +31,7 @@ private:
 public:
     Configuration();
     const QList<QString> & getSupportedImageFormats() const;
+    const QList<QString> & getSupportedVolumeFormats() const;
 };
 
 #endif
