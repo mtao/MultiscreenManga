@@ -79,7 +79,12 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 }
 
 void MainWindow::openFile() {
-    openFile(QFileDialog::getOpenFileName(0, tr("Choose file"), QString()));
+    QString filename = QFileDialog::getOpenFileName(0, tr("Choose file"), QString());
+    // filename is null if user hit cancel
+    if (filename.isNull()) {
+        return;
+    }
+    openFile(filename);
 }
 
 void MainWindow::openFile(const QString & filepath) {
