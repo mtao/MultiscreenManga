@@ -8,14 +8,17 @@ Requirements
 
 * Qt 4 headers (`apt-get install libqt4-dev`)
 * Cmake
+* Poppler Qt4 bindings (`apt-get install libpoppler-qt4-dev`)
 
 Qt Creator is also recommended as a nice IDE.
 
 Build Instructions
 ==================
 
-    $ cd MultiscreenManga; mkdir build; cd build; cmake ..; make;
+Provided is a Makefile that simply invokes cmake. This means you can just:
 
-or more concisely:
-    
     $ cd MultiscreenManga; make;
+
+This is equivalent to the long form series of commands:
+
+    $ cd MultiscreenManga; mkdir build; cd build; cmake ..; make;
