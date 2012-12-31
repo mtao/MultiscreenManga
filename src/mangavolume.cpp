@@ -97,10 +97,6 @@ CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, Q
     qWarning() << "Extracted successfully";
     m_do_cleanup = true;
     readImages(m_file_dir);
-    for (const MangaPage& page: m_pages) {
-        page.getFilename().size();
-        // TODO(mtao): processing?
-    }
 }
 
 

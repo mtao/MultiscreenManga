@@ -13,26 +13,13 @@
 class MangaPage
 {
 public:
-    MangaPage(const QString & path): filepath(path)
-      , filename(filepath.split("/").last())
-      ,data(new QImage(path))
-    {}/*
-    MangaPage(const QImage & data, const QString & path):
-        filepath(path)
-      , filename(filepath.split("/").last())
-      , data(data)
-    {}*/
+    MangaPage(const QString & path):
+        data(new QImage(path)) {}
 
-
-    bool isNull()const {if(!data) return true; return data->isNull();}
-    const QString & getFilepath()const {return filepath;}
-    const QString & getFilename()const {return filename;}
-    std::shared_ptr<const QImage> getData()const {return data;}
-
+    bool isNull() const {if(!data) return true; return data->isNull();}
+    std::shared_ptr<const QImage> getData() const {return data;}
 
 private:
-    QString filepath;
-    QString filename;
     std::shared_ptr<QImage> data;
 };
 
