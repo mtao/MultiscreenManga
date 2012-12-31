@@ -14,6 +14,17 @@ ConfigurationHidden::ConfigurationHidden()
     supportedVolumeFormats.push_back(QString("zip"));
     supportedVolumeFormats.push_back(QString("rar"));
     supportedVolumeFormats.push_back(QString("pdf"));
+
+    // Construct supported file filters based on
+    // supported image and volume formats
+    supportedFileFilters.append("Supported image and archive formats (");
+    for (int i=0; i<supportedImageFormats.size(); i++) {
+        supportedFileFilters.append("*." + supportedImageFormats.at(i) + " ");
+    }
+    for (int i=0; i<supportedVolumeFormats.size(); i++) {
+        supportedFileFilters.append("*." + supportedVolumeFormats.at(i) + " ");
+    }
+    supportedFileFilters.append(");; All files (*.*)");
 }
 
 ConfigurationHidden & ConfigurationHidden::getInstance() {
@@ -31,4 +42,8 @@ const QList<QString> & Configuration::getSupportedImageFormats() const {
 
 const QList<QString> & Configuration::getSupportedVolumeFormats() const {
     return config.supportedVolumeFormats;
+}
+
+const QString & Configuration::getSupportedFileFilters() const {
+    return config.supportedFileFilters;
 }

@@ -81,8 +81,16 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 }
 
 void MainWindow::openRootVolume() {
-    QString filename = QFileDialog::getOpenFileName(0, tr("Choose file"), QString());
-    // filename is null if user hit cancel
+    QFileDialog::Options options(QFileDialog::HideNameFilterDetails);
+    QString selectedFilter("");
+    QString filename = QFileDialog::getOpenFileName(
+            this,
+            tr("Choose file or directory"),
+            QDir::homePath(),
+            config->getSupportedFileFilters(),
+            &selectedFilter,
+            options);
+
     if (filename.isNull()) {
         return;
     }
