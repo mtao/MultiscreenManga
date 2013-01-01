@@ -150,6 +150,9 @@ void MainWindow::previousPage() {
 }
 
 void MainWindow::changePage(int index) {
+    if(!m_root_volume) {
+        return;
+    }
     // Enforce preconditions on page number
     if (index < 0) {
         index = 0;
