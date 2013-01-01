@@ -22,6 +22,7 @@ private:
     ConfigurationHidden();
     QList<QString> supportedImageFormats;
     QList<QString> supportedVolumeFormats;
+    QList<QString> supportedFileFiltersList;
     QString supportedFileFilters;
 };
 
@@ -33,6 +34,7 @@ public:
     Configuration();
     const QList<QString> & getSupportedImageFormats() const;
     const QList<QString> & getSupportedVolumeFormats() const;
+    const QList<QString> & getSupportedFileFiltersList() const;
     const QString & getSupportedFileFilters() const;
 };
 

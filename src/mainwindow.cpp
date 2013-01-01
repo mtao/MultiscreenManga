@@ -1,4 +1,5 @@
 #include "include/mainwindow.h"
+#include "include/sidebar.h"
 #include <QtGui/QDockWidget>
 #include <QtGui/QMenuBar>
 #include <QtGui/QFileDialog>
@@ -35,6 +36,10 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     m_control = new QDockWidget(tr("Control"), this);
+    Sidebar * sidebar = new Sidebar(this);
+    connect(sidebar, SIGNAL(filePathSelected(const QString &)),
+            this, SLOT(openRootVolume(const QString &)));
+    m_control->setWidget(sidebar);
     addDockWidget(Qt::LeftDockWidgetArea, m_control);
 
 

@@ -18,12 +18,16 @@ ConfigurationHidden::ConfigurationHidden()
     // Construct supported file filters based on
     // supported image and volume formats
     supportedFileFilters.append("Supported image and archive formats (");
-    for (int i=0; i<supportedImageFormats.size(); i++) {
-        supportedFileFilters.append("*." + supportedImageFormats.at(i) + " ");
+    for (auto && img_format: supportedImageFormats) {
+        supportedFileFiltersList.push_back("*."+img_format);
     }
-    for (int i=0; i<supportedVolumeFormats.size(); i++) {
-        supportedFileFilters.append("*." + supportedVolumeFormats.at(i) + " ");
+    for (auto && vol_format: supportedVolumeFormats) {
+        supportedFileFiltersList.push_back("*."+vol_format);
     }
+    for (auto && format: supportedFileFiltersList) {
+        supportedFileFilters.append(format+" ");
+    }
+
     supportedFileFilters.append(");; All files (*.*)");
 }
 
@@ -42,6 +46,10 @@ const QList<QString> & Configuration::getSupportedImageFormats() const {
 
 const QList<QString> & Configuration::getSupportedVolumeFormats() const {
     return config.supportedVolumeFormats;
+}
+
+const QList<QString> & Configuration::getSupportedFileFiltersList() const {
+    return config.supportedFileFiltersList;
 }
 
 const QString & Configuration::getSupportedFileFilters() const {
