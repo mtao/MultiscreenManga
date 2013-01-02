@@ -10,8 +10,8 @@
 
 // DirectoryMangaVolume
 
-DirectoryMangaVolume::DirectoryMangaVolume(bool cleanup, QObject * parent)
-    : MangaVolume(cleanup, parent)
+DirectoryMangaVolume::DirectoryMangaVolume(QObject * parent)
+    : MangaVolume(parent)
 {}
 
 DirectoryMangaVolume::DirectoryMangaVolume(const QString & dirpath, QObject *parent) 
@@ -63,8 +63,8 @@ void DirectoryMangaVolume::readImages(const QString & path) {
 
 // CompressedFileMangaVolume
 
-CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, QObject *parent)
-    : DirectoryMangaVolume(true, parent) {
+CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, QObject *parent, bool do_cleanup)
+    : DirectoryMangaVolume(parent), m_do_cleanup(do_cleanup) {
     QStringList path_split = filepath.split("/");
     QString filename = path_split.last();
     QStringList filename_split = filename.split(".");
@@ -140,6 +140,13 @@ CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, Q
     for (const MangaPage& page: m_pages) {
         page.getFilename().size();
         // TODO(mtao): processing?
+    }
+}
+
+CompressedFileMangaVolume::~CompressedFileMangaVolume() {
+    if (m_do_cleanup) {
+
+        cleanUp(m_file_dir);
     }
 }
 

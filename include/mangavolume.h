@@ -42,12 +42,7 @@ class MangaVolume : public QObject
 {
     Q_OBJECT
 public:
-    explicit MangaVolume(bool do_cleanup, QObject * parent = 0): QObject(parent), m_do_cleanup(do_cleanup) {}
-    ~MangaVolume() {
-        if (m_do_cleanup) {
-            cleanUp(m_file_dir);
-        }
-    }
+    explicit MangaVolume(bool do_cleanup, QObject * parent = 0): QObject(parent) {}
     // Number of pages in this volume
     virtual uint numPages() const {return size();};
     // Number of pages in this volume and all subvolumes
@@ -56,8 +51,6 @@ public:
     virtual bool refreshOnResize() const {return false;}
 protected:
     QString m_file_dir;
-    virtual void cleanUp(const QString &path) {}
-    bool m_do_cleanup;
 };
 
 
@@ -65,7 +58,7 @@ class DirectoryMangaVolume : public MangaVolume
 {
     Q_OBJECT
 public:
-    explicit DirectoryMangaVolume(bool cleanup=false, QObject * parent = 0);
+    explicit DirectoryMangaVolume(QObject * parent = 0);
     explicit DirectoryMangaVolume(const QString & dirpath, QObject *parent = 0);
     std::shared_ptr<const QImage> getImage(uint page_num, QPointF) const;
     // Number of pages in this volume
@@ -88,10 +81,12 @@ private:
 class CompressedFileMangaVolume : public DirectoryMangaVolume
 {
 public:
-    explicit CompressedFileMangaVolume(const QString & filepath, QObject *parent = 0);
+    explicit CompressedFileMangaVolume(const QString & filepath, QObject *parent = 0, bool do_cleanup = true);
+    ~CompressedFileMangaVolume();
 
 private:
     void cleanUp(const QString & path);
+    bool m_do_cleanup;
 };
 
 
