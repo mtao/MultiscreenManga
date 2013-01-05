@@ -10,7 +10,9 @@ class FileViewer: public QTreeView
 public:
     FileViewer(QWidget *parent = 0);
 protected:
-
+    void mousePressEvent(QMouseEvent * event);
+public slots:
+    void selectRoot();
 };
 
 class Sidebar: public QWidget
@@ -24,7 +26,6 @@ public slots:
 signals:
     void filePathSelected(const QString &);
 private:
-    QFileSystemModel * model = 0;
-    QTreeView * tree = 0;
+    FileViewer * tree = 0;
 };
 #endif

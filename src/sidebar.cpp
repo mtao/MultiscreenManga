@@ -2,35 +2,74 @@
 #include "include/configuration.h"
 #include <QFileSystemModel>
 #include <QVBoxLayout>
-#include <QDebug>
+#include <QMouseEvent>
+#include <QMenu>
+#include <QFileDialog>
+#include <QHeaderView>
+
 FileViewer::FileViewer(QWidget * parent ): QTreeView(parent) {
+    QFileSystemModel * model = new QFileSystemModel(this);
+    model->setResolveSymlinks(false);
+    model->setNameFilters(
+                Configuration().getSupportedFileFiltersList()
+                );
+    model->setNameFilterDisables(false);
+    model->setRootPath(QDir::currentPath());
+    header()->setMovable(true);
+    this->setModel(model);
+    this->setSortingEnabled(true);
+    this->setRootIndex(model->index(QDir::currentPath()));
+    this->header()->swapSections(1,3);
+    this->header()->hideSection(2);//type
+    this->header()->setResizeMode(QHeaderView::Interactive);
+    this->header()->resizeSections(QHeaderView::ResizeToContents);
+
+
+
+}
+
+void FileViewer::mousePressEvent(QMouseEvent * event) {
+    if (event->button() == Qt::RightButton) {
+        QMenu * menu = new QMenu(this);
+        QAction * setRootAction = new QAction(tr("New &Root"), this);
+        connect(setRootAction, SIGNAL(triggered()), this, SLOT(selectRoot()) );
+        menu->addAction(setRootAction);
+        menu->exec(mapToGlobal(event->pos()));
+        event->accept();
+    }
+    QTreeView::mousePressEvent(event);
+
+}
+
+void FileViewer::selectRoot() {
+    QString dirname = QFileDialog::getExistingDirectory(
+                this,
+                tr("Choose new root directory"),
+                QDir::currentPath()
+                );
+
+    if (dirname.isNull()) {
+        return;
+    } else {
+        setRootIndex(static_cast<QFileSystemModel *>(model())->index(dirname));
+        this->header()->resizeSections(QHeaderView::ResizeToContents);
+    }
 
 }
 
 void Sidebar::modelItemSelected(const QModelIndex & index) {
-    emit filePathSelected(model->filePath(index));
+    emit filePathSelected(static_cast<QFileSystemModel *>(tree->model())->filePath(index));
 }
-
 
 Sidebar::Sidebar(QWidget * parent): QWidget(parent) {
     QVBoxLayout * layout = new QVBoxLayout(this);
     setLayout(layout);
-    model = new QFileSystemModel(this);
-    model->setResolveSymlinks(false);
-    qWarning() << Configuration().getSupportedFileFilters();
-    model->setNameFilters(
-                Configuration().getSupportedFileFiltersList()
-                          );
-    model->setNameFilterDisables(false);
-    model->setRootPath(QDir::currentPath());
-    QTreeView *tree = new QTreeView(this);
-    tree->setModel(model);
-    tree->setSortingEnabled(true);
-    tree->setRootIndex(model->index(QDir::currentPath()));
+    tree = new FileViewer(this);
+
     connect(
                 tree, SIGNAL(doubleClicked(const QModelIndex &)),
                 this, SLOT(modelItemSelected(const QModelIndex &))
-            );
+                );
     layout->addWidget(tree);
 
 }
