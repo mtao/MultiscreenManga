@@ -8,7 +8,7 @@
 
 RenderWidget::RenderWidget(
         std::mutex & mutex, uint page, uint index,
-        std::shared_ptr<const MangaVolume> volume, MainWindow *parent)
+        std::shared_ptr< MangaVolume> volume, MainWindow *parent)
     : QGLWidget(parent)
     , color(0)
     , m_volume(volume), m_index(index), m_page_num(page+index)
@@ -22,23 +22,28 @@ RenderWidget::RenderWidget(
     setFocusPolicy(Qt::StrongFocus);
 }
 
-void RenderWidget::setMangaVolume(std::shared_ptr<const MangaVolume> volume) {
+void RenderWidget::setMangaVolume(std::shared_ptr<MangaVolume> volume) {
     m_volume = volume;
     setPage(0);
 }
 
 void RenderWidget::setPage(uint page) {
     qDebug() << __FUNCTION__ << page;
-    m_page_num = page + m_index;
+
+
+
+
     auto volume_ptr = m_volume.lock();
-    qWarning() << "Opening page: " << page;
+
     if (!volume_ptr) {
         return;
     }
-
+    volume_ptr->discardPage(m_page_num);
+    m_page_num = page + m_index;
+    qWarning() << "Opening page: " << m_page_num;
     std::shared_ptr<const QImage> img = volume_ptr->getImage(m_page_num);
     if (!img) {
-        qWarning() << "Index " << m_index
+        qWarning() << "Renderwidget " << m_index
                    << " reports that there is no page " << m_page_num;
         return;
     }
@@ -47,7 +52,7 @@ void RenderWidget::setPage(uint page) {
     m_page_texture_id = bindTexture(*img);
     checkScale();
 
-    qWarning() << "Done loading page";
+    //qWarning() << "Done loading page";
     update();
 }
 

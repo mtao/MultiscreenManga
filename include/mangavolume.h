@@ -14,22 +14,17 @@
 class MangaPage
 {
 public:
+    MangaPage() {}
     MangaPage(const QString & path): filepath(path)
       , filename(filepath.split("/").last())
       ,data(new QImage(path))
-    {}/*
-    MangaPage(const QImage & data, const QString & path):
-        filepath(path)
-      , filename(filepath.split("/").last())
-      , data(data)
-    {}*/
+    {}
 
 
     bool isNull()const {if(!data) return true; return data->isNull();}
     const QString & getFilepath()const {return filepath;}
     const QString & getFilename()const {return filename;}
     std::shared_ptr<const QImage> getData()const {return data;}
-
 
 private:
     QString filepath;
@@ -47,10 +42,13 @@ public:
     virtual uint numPages() const {return size();};
     // Number of pages in this volume and all subvolumes
     virtual uint size() const = 0;
-    virtual std::shared_ptr<const QImage> getImage (uint page_num, QPointF scale=QPointF(1.0f,1.0f)) const = 0;
+    virtual std::shared_ptr<const QImage> getImage (uint page_num, QPointF scale=QPointF(1.0f,1.0f)) = 0;
+    virtual void discardPage(uint page_num) {}
     virtual bool refreshOnResize() const {return false;}
 protected:
     QString m_file_dir;
+public slots:
+    virtual void getNumRenderWidgets(int) {};
 };
 
 
@@ -59,18 +57,31 @@ class DirectoryMangaVolume : public MangaVolume
     Q_OBJECT
 public:
     explicit DirectoryMangaVolume(QObject * parent = 0);
-    explicit DirectoryMangaVolume(const QString & dirpath, QObject *parent = 0);
-    std::shared_ptr<const QImage> getImage(uint page_num, QPointF) const;
+    explicit DirectoryMangaVolume(const QString & dirpath, QObject *parent = 0, int prefetch_width=2);
+    std::shared_ptr<const QImage> getImage(uint page_num, QPointF);
+    virtual void discardPage(uint page_num);
     // Number of pages in this volume
     virtual uint numPages() const;
     // Number of pages in this volume and all subvolumes
     virtual uint size() const;
 
+
 protected:
     std::vector<MangaPage> m_pages;
+    std::vector<QString> m_page_names;
+    std::set<uint> m_active_pages;
+    std::map<uint, MangaPage> m_prefetched_pages;
+    int m_prefetch_width=2;
+    int m_num_renderwidgets=1;
+
     virtual void readImages(const QString & path);
+    virtual void getNumRenderWidgets(int);
+
 
 private:
+    int prefetchMin();
+    int prefetchMax();
+    void prefetch();
     QList<QString> m_child_volumes;
 };
 
@@ -96,7 +107,7 @@ class PDFMangaVolume : public MangaVolume
 public:
     explicit PDFMangaVolume(const QString filepath, QObject *parent = 0);
     uint size() const;
-    std::shared_ptr<const QImage> getImage (uint page_num, QPointF scale) const;
+    std::shared_ptr<const QImage> getImage (uint page_num, QPointF scale);
     bool refreshOnResize() const {return true;}
 
 private:

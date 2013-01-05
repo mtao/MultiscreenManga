@@ -22,10 +22,10 @@ public:
 private:
     QDockWidget * m_control;
     int m_page_num;
-    std::shared_ptr<const MangaVolume> m_root_volume;
+    std::shared_ptr<MangaVolume> m_root_volume;
     std::mutex m_renderer_mutex;
 
-    std::shared_ptr<const MangaVolume> openVolume(const QString & filename);
+    std::shared_ptr<MangaVolume> openVolume(const QString & filename);
     //Don't need need to be smart because I'm taking care of this myself
     std::set< std::unique_ptr<RenderWidgetResource> > m_renderwidgets;
     std::shared_ptr<Configuration> config;
@@ -46,11 +46,12 @@ public slots:
 
 
 signals:
-    void newRootMangaVolume(std::shared_ptr<const MangaVolume> volume);
+    void newRootMangaVolume(std::shared_ptr<MangaVolume> volume);
     void newPage(uint page);
     void wantNewPage();
     void wantPrevPage();
     void closeAll();
+    void numRenderWidgets(int);
 
     void pageChanged();
 };

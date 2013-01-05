@@ -62,8 +62,8 @@ RenderWidget * MainWindow::createRenderWidget() {
                 , m_page_num
                 , m_renderwidgets.size()
                 , m_root_volume);
-    connect(this, SIGNAL(newRootMangaVolume(std::shared_ptr<const MangaVolume>)),
-            widget, SLOT(setMangaVolume(std::shared_ptr<const MangaVolume>)));
+    connect(this, SIGNAL(newRootMangaVolume(std::shared_ptr< MangaVolume>)),
+            widget, SLOT(setMangaVolume(std::shared_ptr< MangaVolume>)));
     connect(this, SIGNAL(newPage(uint)),
             widget, SLOT(setPage(uint)));
     connect(this, SIGNAL(closeAll()),
@@ -75,6 +75,9 @@ RenderWidget * MainWindow::createRenderWidget() {
     widget->show();
     m_renderwidgets.insert(std::unique_ptr<RenderWidgetResource>(
                                new RenderWidgetResource(widget, m_renderwidgets.size())));
+    if(m_root_volume) {
+        m_root_volume->getNumRenderWidgets(m_renderwidgets.size());
+    }
     m_renderer_mutex.unlock();
 
     return widget;
@@ -103,18 +106,21 @@ void MainWindow::openRootVolume() {
 }
 
 void MainWindow::openRootVolume(const QString & filepath) {
-    std::shared_ptr<const MangaVolume> volume = openVolume(filepath);
+    std::shared_ptr< MangaVolume> volume = openVolume(filepath);
     if (volume == NULL) {
         qWarning() << "Could not open path" << filepath;
         return;
     }
     m_root_volume.reset();
     m_root_volume = volume;
+    if(m_root_volume) {
+        m_root_volume->getNumRenderWidgets(m_renderwidgets.size());
+    }
     m_page_num = 0;
     emit newRootMangaVolume(m_root_volume);
 }
 
-std::shared_ptr<const MangaVolume> MainWindow::openVolume(const QString & filename) {
+std::shared_ptr<MangaVolume> MainWindow::openVolume(const QString & filename) {
     MangaVolume *volume;
     if (filename.endsWith(tr(".pdf"))) {
         volume = new PDFMangaVolume(filename, this);
@@ -142,7 +148,8 @@ std::shared_ptr<const MangaVolume> MainWindow::openVolume(const QString & filena
             return NULL;
         }
     }
-    std::shared_ptr<const MangaVolume> volume_ptr(volume);
+
+    std::shared_ptr<MangaVolume> volume_ptr(volume);
     return volume_ptr;
 }
 
@@ -191,7 +198,9 @@ void MainWindow::renderWidgetClosed(uint index) {
         (*it)->decrementIndex();
     }
 
-
+    if(m_root_volume) {
+        m_root_volume->getNumRenderWidgets(m_renderwidgets.size());
+    }
     if (need_to_unlock_myself) {
         m_renderer_mutex.unlock();
     }

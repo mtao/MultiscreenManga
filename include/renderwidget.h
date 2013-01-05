@@ -19,11 +19,10 @@ class RenderWidget : public QGLWidget, protected QGLFunctions
     Q_OBJECT
 public:
     enum FIT_MODE{FM_WIDTH, FM_HEIGHT, FM_BEST};
-    explicit RenderWidget(
-            std::mutex & mutex
+    explicit RenderWidget(std::mutex & mutex
             , uint page_num
             , uint index=0
-            , std::shared_ptr<const MangaVolume> volume = std::shared_ptr<const MangaVolume>()
+            , std::shared_ptr<MangaVolume> volume = std::shared_ptr< MangaVolume>()
             , MainWindow *parent = 0
             );
     void setIndex(int index);
@@ -38,7 +37,7 @@ signals:
 
 public slots:
     void setPage(uint page);
-    void setMangaVolume(std::shared_ptr<const MangaVolume> volume);
+    void setMangaVolume(std::shared_ptr<MangaVolume> volume);
 
     protected:
     void QCloseEvent();
@@ -49,7 +48,7 @@ public slots:
     float color;
     
     private:
-    std::weak_ptr<const MangaVolume> m_volume;
+    std::weak_ptr<MangaVolume> m_volume;
     uint m_index;
     uint m_page_num;
     GLuint m_page_texture_id;
