@@ -51,7 +51,9 @@ void FileViewer::selectRoot() {
     if (dirname.isNull()) {
         return;
     } else {
-        setRootIndex(static_cast<QFileSystemModel *>(model())->index(dirname));
+        QFileSystemModel* model = static_cast<QFileSystemModel *>(this->model());
+        setRootIndex(model->index(dirname));
+        model->setRootPath(dirname);
         this->header()->resizeSections(QHeaderView::ResizeToContents);
     }
 
