@@ -63,7 +63,7 @@ void Sidebar::modelItemSelected(const QModelIndex & index) {
     emit filePathSelected(static_cast<QFileSystemModel *>(tree->model())->filePath(index));
 }
 
-Sidebar::Sidebar(QWidget * parent): QWidget(parent) {
+Sidebar::Sidebar(QWidget * parent): QWidget(parent), tree(0) {
     QVBoxLayout * layout = new QVBoxLayout(this);
     setLayout(layout);
     tree = new FileViewer(this);

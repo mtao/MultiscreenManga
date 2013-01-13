@@ -71,8 +71,8 @@ protected:
     std::vector<QString> m_page_names;
     std::set<uint> m_active_pages;
     std::map<uint, MangaPage> m_prefetched_pages;
-    int m_prefetch_width=2;
-    int m_num_renderwidgets=1;
+    int m_prefetch_width;
+    int m_num_renderwidgets;
 
     virtual void readImages(const QString & path);
     virtual void getNumRenderWidgets(int);

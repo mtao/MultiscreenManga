@@ -15,7 +15,7 @@ DirectoryMangaVolume::DirectoryMangaVolume(QObject * parent)
 {}
 
 DirectoryMangaVolume::DirectoryMangaVolume(const QString & dirpath, QObject *parent, int prefetch_width)
-    : MangaVolume(false, parent), m_prefetch_width(prefetch_width) {
+    : MangaVolume(false, parent), m_prefetch_width(prefetch_width), m_num_renderwidgets(1) {
     readImages(dirpath);
 }
 

@@ -26,6 +26,6 @@ public slots:
 signals:
     void filePathSelected(const QString &);
 private:
-    FileViewer * tree = 0;
+    FileViewer * tree;
 };
 #endif
