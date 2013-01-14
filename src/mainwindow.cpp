@@ -100,12 +100,12 @@ void MainWindow::openRootVolume() {
     QFileDialog::Options options(QFileDialog::HideNameFilterDetails);
     QString selectedFilter("");
     QString filename = QFileDialog::getOpenFileName(
-            this,
-            tr("Choose file or directory"),
-            QDir::homePath(),
-            config->getSupportedFileFilters(),
-            &selectedFilter,
-            options);
+                this,
+                tr("Choose file or directory"),
+                QDir::homePath(),
+                config->getSupportedFileFilters(),
+                &selectedFilter,
+                options);
 
     if (filename.isNull()) {
         return;
@@ -114,9 +114,15 @@ void MainWindow::openRootVolume() {
 }
 
 void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
-    const QString path = scanForHomePath(filepath);
+    QString path = scanForHomePath(filepath);
+    QFileInfo fileinfo(path);
     if(changeRoot) {
-        setRoot(QFileInfo(path).dir().absolutePath());
+        setRoot(fileinfo.dir().absolutePath());
+    }
+    bool willFindIndex = false;
+    if(fileinfo.isFile() && config->isSupportedImageFormat(fileinfo.completeSuffix())) {
+        path = fileinfo.dir().absolutePath();
+        willFindIndex = true;
     }
     std::shared_ptr< MangaVolume> volume = openVolume(path);
     if (volume == NULL) {
@@ -133,6 +139,10 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
     }
     m_page_num = 0;
     emit newRootMangaVolume(m_root_volume);
+    if(willFindIndex && m_root_volume) {
+        qWarning() << "Finding index: " << m_root_volume->findIndex(path);
+        emit changePage(m_root_volume->findIndex(filepath));
+    }
 }
 
 std::shared_ptr<MangaVolume> MainWindow::openVolume(const QString & filename) {
@@ -145,12 +155,12 @@ std::shared_ptr<MangaVolume> MainWindow::openVolume(const QString & filename) {
     }
     else {
         QFileInfo fileInfo(filename);
-        QString extension = filename.split(".").last();
+        QString extension = fileInfo.completeSuffix();
         QString volPath = NULL;
         if (fileInfo.isDir()) {
             // If it's a directory, then use it as the volume root
             volPath = fileInfo.absoluteFilePath();
-        } else if (config->getSupportedImageFormats().contains(extension)) {
+        } else if (config->isSupportedImageFormat(extension)) {
             // If it's a supported image file, use it's parent
             volPath = fileInfo.absolutePath();
         }
@@ -159,7 +169,7 @@ std::shared_ptr<MangaVolume> MainWindow::openVolume(const QString & filename) {
             volume = new DirectoryMangaVolume(volPath, this);
         } else {
             qWarning() << "Specified path" << filename
-                << "is not a directory or recognized image format!";
+                       << "is not a directory or recognized image format!";
             return NULL;
         }
     }

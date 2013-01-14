@@ -45,6 +45,7 @@ public:
     virtual std::shared_ptr<const QImage> getImage (uint page_num, QPointF scale=QPointF(1.0f,1.0f)) = 0;
     virtual void discardPage(uint page_num) {}
     virtual bool refreshOnResize() const {return false;}
+    virtual int findIndex(const QString &) { return -1; }
 protected:
     QString m_file_dir;
 public slots:
@@ -64,6 +65,7 @@ public:
     virtual uint numPages() const;
     // Number of pages in this volume and all subvolumes
     virtual uint size() const;
+    virtual int findIndex(const QString & filename);
 
 
 protected:

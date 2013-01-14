@@ -40,18 +40,25 @@ ConfigurationHidden & ConfigurationHidden::getInstance() {
 
 Configuration::Configuration(): config(ConfigurationHidden::getInstance()) {}
 
-const QList<QString> & Configuration::getSupportedImageFormats() const {
+const QStringList & Configuration::getSupportedImageFormats() const {
     return config.supportedImageFormats;
 }
 
-const QList<QString> & Configuration::getSupportedVolumeFormats() const {
+const QStringList & Configuration::getSupportedVolumeFormats() const {
     return config.supportedVolumeFormats;
 }
 
-const QList<QString> & Configuration::getSupportedFileFiltersList() const {
+const QStringList & Configuration::getSupportedFileFiltersList() const {
     return config.supportedFileFiltersList;
 }
 
 const QString & Configuration::getSupportedFileFilters() const {
     return config.supportedFileFilters;
+}
+
+const bool Configuration::isSupportedImageFormat(const QString & str) const {
+    return getSupportedImageFormats().contains(str);
+}
+const bool Configuration::isSupportedVolumeFormat(const QString & str) const {
+    return getSupportedVolumeFormats().contains(str);
 }

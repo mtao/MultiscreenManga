@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <QList>
+#include <QStringList>
 #include <QString>
 #include <QImageReader>
 
@@ -20,9 +20,9 @@ public:
 private:
     static ConfigurationHidden & getInstance();
     ConfigurationHidden();
-    QList<QString> supportedImageFormats;
-    QList<QString> supportedVolumeFormats;
-    QList<QString> supportedFileFiltersList;
+    QStringList supportedImageFormats;
+    QStringList supportedVolumeFormats;
+    QStringList supportedFileFiltersList;
     QString supportedFileFilters;
 };
 
@@ -32,10 +32,13 @@ private:
     ConfigurationHidden & config;
 public:
     Configuration();
-    const QList<QString> & getSupportedImageFormats() const;
-    const QList<QString> & getSupportedVolumeFormats() const;
-    const QList<QString> & getSupportedFileFiltersList() const;
+    const QStringList & getSupportedImageFormats() const;
+    const QStringList & getSupportedVolumeFormats() const;
+    const QStringList & getSupportedFileFiltersList() const;
     const QString & getSupportedFileFilters() const;
+
+    const bool isSupportedImageFormat(const QString & str) const;
+    const bool isSupportedVolumeFormat(const QString & str) const;
 };
 
 #endif

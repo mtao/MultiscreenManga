@@ -27,23 +27,35 @@ uint DirectoryMangaVolume::numPages() const {
     return size();
 }
 
+int DirectoryMangaVolume::findIndex(const QString & filename) {
+    QString filepath_canonical = QFileInfo(filename).canonicalFilePath();
+    int ind = 0;
+    for(auto&& it=m_page_names.cbegin(); it != m_page_names.cend(); ++it, ++ind) {
+        if (QFileInfo(*it).canonicalFilePath() == filepath_canonical) {
+            return ind;
+        }
+    }
+    return -1;
+}
+
 std::shared_ptr<const QImage> DirectoryMangaVolume::getImage(uint page_num, QPointF) {
     if (page_num >= m_page_names.size()) {
         return std::shared_ptr<const QImage>();
     } else {
         //if(m_active_pages.find(page_num) != m_active_pages.end())
         {
-            qWarning() << "Pushing into active: " << page_num;
+            //qWarning() << "Pushing into active: " << page_num;
             m_active_pages.insert(page_num);
 
+            //for(auto && ind: m_active_pages) {qDebug("%d ",ind);}
         }
         prefetch();
-        qWarning()  << "Active: " << m_active_pages.size();
+        //qWarning()  << "Active: " << m_active_pages.size();
         //qWarning()  << "Prefetch: " << m_prefetched_pages.size();
-        for(auto && ind: m_active_pages) {qDebug("%d ",ind);}
-        qWarning() << "Max: " << *m_active_pages.crbegin();
-        qWarning() << "Prefetch: ";
-        for(auto && ind: m_prefetched_pages) {qDebug("%d ",ind.first);}
+        //for(auto && ind: m_active_pages) {qDebug("%d ",ind);}
+        //qWarning() << "Max: " << *m_active_pages.crbegin();
+        //qWarning() << "Prefetch: ";
+        //for(auto && ind: m_prefetched_pages) {qDebug("%d ",ind.first);}
         //MangaPage & page = m_prefetched_pages[page_num];
 
         return m_prefetched_pages[page_num].getData();
@@ -71,8 +83,8 @@ void DirectoryMangaVolume::readImages(const QString & path) {
     } else {
         QString extension = path.split(".").last();
         auto formats = Configuration().getSupportedImageFormats();
-        if (formats.contains(extension)) {
-            m_page_names.push_back(path);
+        if (Configuration().isSupportedImageFormat(fileInfo.suffix())) {
+            m_page_names.push_back(fileInfo.canonicalFilePath());
             /*
             MangaPage img(path);
             if (!img.isNull()) {
@@ -97,7 +109,7 @@ int DirectoryMangaVolume::prefetchMax() {
 }
 
 void DirectoryMangaVolume::discardPage(uint page_num) {
-    qWarning() << "Discard!" << page_num;
+    //qWarning() << "Discard!" << page_num;
     //qWarning() << "Old size: " << m_active_pages.size();
     m_active_pages.erase(page_num);
     //qWarning() << "New size: "<<m_active_pages.size();
@@ -106,36 +118,39 @@ void DirectoryMangaVolume::prefetch() {
     int theoretical_min = prefetchMin();
     int theoretical_max = prefetchMax();
     theoretical_max = std::max(theoretical_min+1,theoretical_max);
-    qWarning() << theoretical_min << " " << theoretical_max;
+    //qWarning() << theoretical_min << " " << theoretical_max;
+    //clear out pages that aren't necessary anymore
+    while(m_prefetched_pages.size() > 0 &&
+          m_prefetched_pages.cbegin()->first < theoretical_min) {
+        //qWarning() << "front unprefetched: " << m_prefetched_pages.begin()->first;
+        m_prefetched_pages.erase(m_prefetched_pages.begin());
+    }
+    while(m_prefetched_pages.size() > 0 &&
+          m_prefetched_pages.crbegin()->first > theoretical_max) {
+        //qWarning() << "back unprefetched: " << m_prefetched_pages.crbegin()->first;
+        //qWarning() << m_prefetched_pages.crbegin()->second.getFilename();
+        m_prefetched_pages.erase(--(m_prefetched_pages.crbegin().base()));
+    }
+    //if empty fill it in
     if( m_prefetched_pages.size() == 0) {
         for(int i=theoretical_min; i < theoretical_max; ++i) {
             m_prefetched_pages[i] = MangaPage(m_page_names[i]);
         }
     }
+    //else fill in the front and back
     if(theoretical_min < m_prefetched_pages.cbegin()->first) {
         int endPos = m_prefetched_pages.cbegin()->first;
         for(int i=theoretical_min; i < endPos; ++i) {
-            qWarning() << "font prefetched: " << i;
+            //qWarning() << "font prefetched: " << i;
             m_prefetched_pages[i] = MangaPage(m_page_names[i]);
         }
-    } else {
-            while(m_prefetched_pages.cbegin()->first < theoretical_min) {
-                qWarning() << "front unprefetched: " << m_prefetched_pages.begin()->first;
-                m_prefetched_pages.erase(m_prefetched_pages.begin());
-            }
     }
     if(theoretical_max > m_prefetched_pages.crbegin()->first) {
         int startPos = m_prefetched_pages.crbegin()->first+1;
         for(int i=startPos; i < theoretical_max; ++i) {
-            qWarning() << "back prefetched: " << i;
+            //qWarning() << "back prefetched: " << i;
             m_prefetched_pages[i] = MangaPage(m_page_names[i]);
         }
-    } else {
-            while(m_prefetched_pages.crbegin()->first > theoretical_max) {
-                qWarning() << "back unprefetched: " << m_prefetched_pages.crbegin()->first;
-                qWarning() << m_prefetched_pages.crbegin()->second.getFilename();
-                m_prefetched_pages.erase(--(m_prefetched_pages.crbegin().base()));
-            }
     }
 
 }

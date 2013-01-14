@@ -28,7 +28,6 @@ void RenderWidget::setMangaVolume(std::shared_ptr<MangaVolume> volume) {
 }
 
 void RenderWidget::setPage(uint page) {
-    qDebug() << __FUNCTION__ << page;
 
 
 
@@ -38,9 +37,10 @@ void RenderWidget::setPage(uint page) {
     if (!volume_ptr) {
         return;
     }
+    qDebug() << __FUNCTION__ << page << "/" << volume_ptr->numPages();
     volume_ptr->discardPage(m_page_num);
     m_page_num = page + m_index;
-    qWarning() << "Opening page: " << m_page_num;
+    //qWarning() << "Opening page: " << m_page_num;
     std::shared_ptr<const QImage> img = volume_ptr->getImage(m_page_num);
     if (!img) {
         qWarning() << "Renderwidget " << m_index
