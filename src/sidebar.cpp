@@ -42,12 +42,17 @@ void FileViewer::mousePressEvent(QMouseEvent * event) {
 }
 
 void FileViewer::selectRoot() {
-    QString dirname = QFileDialog::getExistingDirectory(
+    setRoot(QFileDialog::getExistingDirectory(
                 this,
                 tr("Choose new root directory"),
                 QDir::currentPath()
-                );
+                )
+            );
 
+
+}
+
+void FileViewer::setRoot(const QString & dirname) {
     if (dirname.isNull()) {
         return;
     } else {
@@ -56,7 +61,6 @@ void FileViewer::selectRoot() {
         model->setRootPath(dirname);
         this->header()->resizeSections(QHeaderView::ResizeToContents);
     }
-
 }
 
 void Sidebar::modelItemSelected(const QModelIndex & index) {
@@ -72,6 +76,7 @@ Sidebar::Sidebar(QWidget * parent): QWidget(parent), tree(0) {
                 tree, SIGNAL(doubleClicked(const QModelIndex &)),
                 this, SLOT(modelItemSelected(const QModelIndex &))
                 );
+    connect(parent, SIGNAL(emitRootPath(const QString &)), tree, SLOT(setRoot(const QString &)));
     layout->addWidget(tree);
 
 }

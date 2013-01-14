@@ -56,7 +56,7 @@ class DirectoryMangaVolume : public MangaVolume
 {
     Q_OBJECT
 public:
-    explicit DirectoryMangaVolume(QObject * parent = 0);
+    explicit DirectoryMangaVolume(QObject * parent = 0, int prefetch_width=2);
     explicit DirectoryMangaVolume(const QString & dirpath, QObject *parent = 0, int prefetch_width=2);
     std::shared_ptr<const QImage> getImage(uint page_num, QPointF);
     virtual void discardPage(uint page_num);

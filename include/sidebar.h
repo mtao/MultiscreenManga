@@ -13,6 +13,7 @@ protected:
     void mousePressEvent(QMouseEvent * event);
 public slots:
     void selectRoot();
+    void setRoot(const QString & dirname);
 };
 
 class Sidebar: public QWidget

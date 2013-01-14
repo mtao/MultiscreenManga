@@ -7,6 +7,14 @@
 #include <QKeyEvent>
 #include <limits>
 
+QString scanForHomePath(const QString &path) {
+    if(path[0] == '~') {
+        return QDir::homePath() + path.mid(1);
+    } else {
+        return path;
+    }
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_page_num(0) {
 
@@ -102,16 +110,23 @@ void MainWindow::openRootVolume() {
     if (filename.isNull()) {
         return;
     }
-    openRootVolume(filename);
+    openRootVolume(filename, true);
 }
 
-void MainWindow::openRootVolume(const QString & filepath) {
-    std::shared_ptr< MangaVolume> volume = openVolume(filepath);
+void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
+    const QString path = scanForHomePath(filepath);
+    if(changeRoot) {
+        setRoot(QFileInfo(path).dir().absolutePath());
+    }
+    std::shared_ptr< MangaVolume> volume = openVolume(path);
     if (volume == NULL) {
         qWarning() << "Could not open path" << filepath;
         return;
     }
     m_root_volume.reset();
+    if(volume->numPages() == 0) {
+        return;
+    }
     m_root_volume = volume;
     if(m_root_volume) {
         m_root_volume->getNumRenderWidgets(m_renderwidgets.size());
@@ -248,6 +263,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     }
 }
 
+void MainWindow::setRoot(const QString & rootpath) {
+    emit emitRootPath(scanForHomePath(rootpath));
+
+}
 
 MainWindow::~MainWindow() {
 }

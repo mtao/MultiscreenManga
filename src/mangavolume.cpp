@@ -10,8 +10,8 @@
 
 // DirectoryMangaVolume
 
-DirectoryMangaVolume::DirectoryMangaVolume(QObject * parent)
-    : MangaVolume(parent)
+DirectoryMangaVolume::DirectoryMangaVolume(QObject * parent, int prefetch_width)
+    : MangaVolume(parent), m_prefetch_width(prefetch_width)
 {}
 
 DirectoryMangaVolume::DirectoryMangaVolume(const QString & dirpath, QObject *parent, int prefetch_width)

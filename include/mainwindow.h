@@ -35,7 +35,7 @@ protected:
 
 public slots:
     void openRootVolume();
-    void openRootVolume(const QString & filepath);
+    void openRootVolume(const QString & filepath, bool changeRoot = false);
     void nextPage();
     void previousPage();
     void changePage(int index);
@@ -43,6 +43,7 @@ public slots:
     RenderWidget * createRenderWidget();
     void closeEvent(QCloseEvent *event);
     void keyPressEvent(QKeyEvent *);
+    void setRoot(const QString & rootpath);
 
 
 signals:
@@ -52,6 +53,7 @@ signals:
     void wantPrevPage();
     void closeAll();
     void numRenderWidgets(int);
+    void emitRootPath(const QString &);
 
     void pageChanged();
 };
