@@ -13,6 +13,8 @@ ConfigurationHidden::ConfigurationHidden()
     // TODO(umbrant): try to avoid hardcoding this
     supportedVolumeFormats.push_back(QString("zip"));
     supportedVolumeFormats.push_back(QString("rar"));
+    supportedVolumeFormats.push_back(QString("cbz"));
+    supportedVolumeFormats.push_back(QString("cbr"));
     supportedVolumeFormats.push_back(QString("pdf"));
 
     // Construct supported file filters based on

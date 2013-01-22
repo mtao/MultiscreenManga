@@ -150,7 +150,11 @@ std::shared_ptr<MangaVolume> MainWindow::openVolume(const QString & filename) {
     if (filename.endsWith(tr(".pdf"))) {
         volume = new PDFMangaVolume(filename, this);
     }
-    else if (filename.endsWith(tr(".zip")) || filename.endsWith(tr(".rar"))) {
+    else if (filename.endsWith(tr(".zip"))
+             || filename.endsWith(tr(".rar"))
+             || filename.endsWith(tr(".cbr"))
+             || filename.endsWith(tr(".cbz"))
+             ) {
         volume = new CompressedFileMangaVolume(filename, this);
     }
     else {

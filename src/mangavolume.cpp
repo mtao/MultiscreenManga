@@ -185,11 +185,11 @@ CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, Q
 
     QString program = "";
     QStringList arguments;
-    if (filename.endsWith(tr(".zip"))) {
+    if (filename.endsWith(tr(".zip")) || filename.endsWith(tr(".cbz"))) {
         program = tr("unzip");
         arguments << tr("-d") << m_file_dir;
         arguments << filepath;
-    } else if (filename.endsWith(tr(".rar"))) {
+    } else if (filename.endsWith(tr(".rar")) || filename.endsWith(tr(".cbr"))) {
         program = tr("unrar");
         arguments << tr("x");
         arguments << filepath;
