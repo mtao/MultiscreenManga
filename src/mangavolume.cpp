@@ -41,25 +41,17 @@ int DirectoryMangaVolume::findIndex(const QString & filename) {
 std::shared_ptr<const QImage> DirectoryMangaVolume::getImage(uint page_num, QPointF) {
     if (page_num >= m_page_names.size()) {
         return std::shared_ptr<const QImage>();
+    } else if(m_prefetch_width <= 0)
+    {
+        return MangaPage(m_page_names[page_num]).getData();
     } else {
-        //if(m_active_pages.find(page_num) != m_active_pages.end())
-        {
-            //qWarning() << "Pushing into active: " << page_num;
-            m_active_pages.insert(page_num);
-
-            //for(auto && ind: m_active_pages) {qDebug("%d ",ind);}
-        }
+        m_active_pages.insert(page_num);
         prefetch();
-        //qWarning()  << "Active: " << m_active_pages.size();
-        //qWarning()  << "Prefetch: " << m_prefetched_pages.size();
-        //for(auto && ind: m_active_pages) {qDebug("%d ",ind);}
-        //qWarning() << "Max: " << *m_active_pages.crbegin();
-        //qWarning() << "Prefetch: ";
-        //for(auto && ind: m_prefetched_pages) {qDebug("%d ",ind.first);}
-        //MangaPage & page = m_prefetched_pages[page_num];
-
         return m_prefetched_pages[page_num].getData();
+
     }
+
+
 }
 
 void DirectoryMangaVolume::getNumRenderWidgets(int count) {
