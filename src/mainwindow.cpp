@@ -16,7 +16,8 @@ QString scanForHomePath(const QString &path) {
 }
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), m_page_num(0) {
+    : QMainWindow(parent), m_page_num(0), m_root_dir(QDir::currentPath()) {
+    setRoot(m_root_dir);
 
     config = std::make_shared<Configuration>();
 
@@ -137,6 +138,7 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
     if(m_root_volume) {
         m_root_volume->getNumRenderWidgets(m_renderwidgets.size());
     }
+    m_filename = fileinfo.fileName();//Now that we know taht we've opened the root vol set the filename...
     m_page_num = 0;
     emit newRootMangaVolume(m_root_volume);
     if(willFindIndex && m_root_volume) {
@@ -196,9 +198,13 @@ void MainWindow::changePage(int index) {
     }
     // Enforce preconditions on page number
     if (index < 0) {
+        changeVolume(-1);
+        return;
         index = 0;
     }
     if (index >= m_root_volume->size()) {
+        changeVolume(1);
+        return;
         index = m_root_volume->size()-m_renderwidgets.size();
     }
     // Skip if we're already at the requested page
@@ -240,13 +246,21 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     case Qt::Key_Left:
     case Qt::Key_Up:
     case Qt::Key_PageUp:
-        previousPage();
+        if(event->modifiers() & Qt::ShiftModifier) {
+            nextPage();
+        } else {
+            previousPage();
+        }
         break;
     case Qt::Key_Right:
     case Qt::Key_Down:
     case Qt::Key_PageDown:
     case Qt::Key_Space:
-        nextPage();
+        if(event->modifiers() & Qt::ShiftModifier) {
+            previousPage();
+        } else {
+            nextPage();
+        }
         break;
     case Qt::Key_Home:
         changePage(0);
@@ -277,9 +291,34 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     }
 }
 
-void MainWindow::setRoot(const QString & rootpath) {
-    emit emitRootPath(scanForHomePath(rootpath));
+void MainWindow::setRoot(const QString & dirpath) {
+    setRoot(QDir(scanForHomePath(dirpath)));
 
+}
+void MainWindow::setRoot(const QDir & dir) {
+    m_root_dir = dir;
+    emit emitRootPath(dir.absolutePath());
+
+}
+
+void MainWindow::changeVolume(int index){
+    qWarning() << "Listing dir: " << m_root_dir.absolutePath();
+
+    QStringList dircontents = m_root_dir.entryList(
+
+    config->getSupportedFileFiltersList(),
+                QDir::NoFilter,
+                QDir::Name | QDir::IgnoreCase);
+    int myind = dircontents.lastIndexOf(m_filename);
+    int newind = myind + index;
+    if (newind < 0 || newind >= dircontents.size()) {
+        return;
+    } else {
+        openRootVolume(m_root_dir.absolutePath()+tr("/")+dircontents[newind]);
+        if(m_root_volume && index < 0) {
+            changePage(m_root_volume->size() - m_renderwidgets.size());
+        }
+    }
 }
 
 MainWindow::~MainWindow() {

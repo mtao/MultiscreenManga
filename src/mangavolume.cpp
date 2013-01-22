@@ -41,8 +41,7 @@ int DirectoryMangaVolume::findIndex(const QString & filename) {
 std::shared_ptr<const QImage> DirectoryMangaVolume::getImage(uint page_num, QPointF) {
     if (page_num >= m_page_names.size()) {
         return std::shared_ptr<const QImage>();
-    } else if(m_prefetch_width <= 0)
-    {
+    } else if(m_prefetch_width <= 0) {
         return MangaPage(m_page_names[page_num]).getData();
     } else {
         m_active_pages.insert(page_num);
@@ -101,6 +100,7 @@ int DirectoryMangaVolume::prefetchMax() {
 }
 
 void DirectoryMangaVolume::discardPage(uint page_num) {
+    if(m_prefetch_width <= 0) return;
     //qWarning() << "Discard!" << page_num;
     //qWarning() << "Old size: " << m_active_pages.size();
     m_active_pages.erase(page_num);

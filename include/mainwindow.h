@@ -29,6 +29,8 @@ private:
     //Don't need need to be smart because I'm taking care of this myself
     std::set< std::unique_ptr<RenderWidgetResource> > m_renderwidgets;
     std::shared_ptr<Configuration> config;
+    QString m_filename;
+    QDir m_root_dir;
 
 protected:
     void setFocus();
@@ -43,7 +45,9 @@ public slots:
     RenderWidget * createRenderWidget();
     void closeEvent(QCloseEvent *event);
     void keyPressEvent(QKeyEvent *);
-    void setRoot(const QString & rootpath);
+    void setRoot(const QString & dirpath);
+    void setRoot(const QDir & dir);
+    void changeVolume(int index);
 
 
 signals:
