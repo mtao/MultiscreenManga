@@ -23,24 +23,28 @@ SET(MultiscreenManga_SOURCES
     src/sidebar.cpp
     )
 # Include files
-SET(MultiscreenManga_HEADERS
+SET(MultiscreenManga_HEADERS_TOMOC
     include/mainwindow.h
     include/mangavolume.h
     include/renderwidget.h
-    include/configuration.h
     include/sidebar.h
+    )
+SET(MultiscreenManga_HEADERS
+    ${MultiscreenManga_HEADERS_TOMOC}
+    include/configuration.h
     )
 SET(MultiscreenManga_SOURCES ${MultiscreenManga_SOURCES} ${MultiscreenManga_HEADERS})
 
 # Qt
 FIND_PACKAGE(Qt4 REQUIRED)
 SET(QT_USE_QTOPENGL TRUE)
-QT4_WRAP_CPP(MultiscreenManga_HEADERS_MOC ${MultiscreenManga_HEADERS})
+QT4_WRAP_CPP(MultiscreenManga_HEADERS_MOC ${MultiscreenManga_HEADERS_TOMOC})
 INCLUDE(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 
 # Executable to build
 ADD_EXECUTABLE(MultiscreenManga
     ${MultiscreenManga_SOURCES}
+    ${MultiscreenManga_HEADERS}
     ${MultiscreenManga_HEADERS_MOC})
 TARGET_LINK_LIBRARIES(MultiscreenManga ${QT_LIBRARIES} GL poppler-qt4)

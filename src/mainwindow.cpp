@@ -102,7 +102,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 void MainWindow::openRootVolume() {
     QFileDialog::Options options(QFileDialog::HideNameFilterDetails);
-    QString selectedFilter("");
+    QString selectedFilter("*");
     QString filename = QFileDialog::getOpenFileName(
                 this,
                 tr("Choose file or directory"),
