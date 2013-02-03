@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QFileSystemModel>
 #include <vector>
 #include <memory>
 #include <mutex>
@@ -31,6 +32,8 @@ private:
     std::shared_ptr<Configuration> config;
     QString m_filename;
     QDir m_root_dir;
+    QFileSystemModel m_fsmodel;
+    QModelIndex m_curindex;
 
 protected:
     void setFocus();

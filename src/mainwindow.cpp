@@ -16,7 +16,10 @@ QString scanForHomePath(const QString &path) {
 }
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), m_page_num(0), m_root_dir(QDir::currentPath()) {
+    : QMainWindow(parent)
+    , m_page_num(0)
+    , m_root_dir(QDir::currentPath()) {
+    m_fsmodel.setNameFilterDisables(false);
     setRoot(m_root_dir);
 
     config = std::make_shared<Configuration>();
@@ -137,6 +140,7 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
     m_root_volume = volume;
     if(m_root_volume) {
         m_root_volume->getNumRenderWidgets(m_renderwidgets.size());
+        m_curindex = m_fsmodel.index(path);
     }
     m_filename = fileinfo.fileName();//Now that we know taht we've opened the root vol set the filename...
     m_page_num = 0;
@@ -297,24 +301,17 @@ void MainWindow::setRoot(const QString & dirpath) {
 }
 void MainWindow::setRoot(const QDir & dir) {
     m_root_dir = dir;
+    m_fsmodel.setRootPath(dir.absolutePath());
     emit emitRootPath(dir.absolutePath());
 
 }
 
 void MainWindow::changeVolume(int index){
-    qWarning() << "Listing dir: " << m_root_dir.absolutePath();
+    QModelIndex newind = m_fsmodel.index(m_curindex.row()+index,m_curindex.column(),m_curindex.parent());
+    if(newind.isValid())
+    {
 
-    QStringList dircontents = m_root_dir.entryList(
-
-    config->getSupportedFileFiltersList(),
-                QDir::NoFilter,
-                QDir::Name | QDir::IgnoreCase);
-    int myind = dircontents.lastIndexOf(m_filename);
-    int newind = myind + index;
-    if (newind < 0 || newind >= dircontents.size()) {
-        return;
-    } else {
-        openRootVolume(m_root_dir.absolutePath()+tr("/")+dircontents[newind]);
+        openRootVolume(m_fsmodel.filePath(newind));
         if(m_root_volume && index < 0) {
             changePage(m_root_volume->size() - m_renderwidgets.size());
         }
