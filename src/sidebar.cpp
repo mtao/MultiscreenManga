@@ -17,8 +17,9 @@ FileViewer::FileViewer(QWidget * parent ): QTreeView(parent) {
     model->setRootPath(QDir::currentPath());
     header()->setMovable(true);
     this->setModel(model);
-    this->setExpandsOnDoubleClick(false);
+    this->setExpandsOnDoubleClick(true);
     this->setSortingEnabled(true);
+    this->sortByColumn(0, Qt::AscendingOrder);
     this->setRootIndex(model->index(QDir::currentPath()));
     this->header()->swapSections(1,3);
     this->header()->hideSection(2);//type
