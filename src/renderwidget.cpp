@@ -90,6 +90,14 @@ void RenderWidget::keyPressEvent(QKeyEvent *event) {
     }
 }
 
+void RenderWidget::mousePressEvent(QMouseEvent *event) {
+    event->ignore();
+}
+
+void RenderWidget::wheelEvent(QWheelEvent *event) {
+    event->ignore();
+}
+
 void RenderWidget::rotatePage(int i) {
     m_rotation = (m_rotation + i) % 4;
     checkScale();

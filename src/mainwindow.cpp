@@ -295,6 +295,28 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     }
 }
 
+void MainWindow::mousePressEvent(QMouseEvent *event) {
+    switch (event->button()) {
+    case Qt::LeftButton:
+        if (event->modifiers() & Qt::ShiftModifier) {
+            previousPage();
+        } else {
+            nextPage();
+        }
+        break;
+    default:
+        QMainWindow::mousePressEvent(event);
+    }
+}
+
+void MainWindow::wheelEvent(QWheelEvent *event) {
+    if (event->delta() < 0) {
+        nextPage();
+    } else {
+        previousPage();
+    }
+}
+
 void MainWindow::setRoot(const QString & dirpath) {
     setRoot(QDir(scanForHomePath(dirpath)));
 
