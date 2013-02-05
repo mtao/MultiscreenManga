@@ -59,8 +59,8 @@ const QString & Configuration::getSupportedFileFilters() const {
 }
 
 const bool Configuration::isSupportedImageFormat(const QString & str) const {
-    return getSupportedImageFormats().contains(str);
+    return getSupportedImageFormats().contains(str.toLower());
 }
 const bool Configuration::isSupportedVolumeFormat(const QString & str) const {
-    return getSupportedVolumeFormats().contains(str);
+    return getSupportedVolumeFormats().contains(str.toLower());
 }

@@ -19,7 +19,12 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_page_num(0)
     , m_root_dir(QDir::currentPath()) {
+    m_fsmodel.setResolveSymlinks(false);
+    m_fsmodel.setNameFilters(
+                Configuration().getSupportedFileFiltersList()
+                );
     m_fsmodel.setNameFilterDisables(false);
+    m_fsmodel.sort(0,Qt::AscendingOrder);
     setRoot(m_root_dir);
 
     config = std::make_shared<Configuration>();
@@ -48,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     m_control = new QDockWidget(tr("Control"), this);
-    Sidebar * sidebar = new Sidebar(this);
+    Sidebar * sidebar = new Sidebar(&m_fsmodel,this);
     connect(sidebar, SIGNAL(filePathSelected(const QString &)),
             this, SLOT(openRootVolume(const QString &)));
     m_control->setWidget(sidebar);
@@ -270,7 +275,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
         changePage(0);
         break;
     case Qt::Key_End:
-        changePage(std::numeric_limits<uint>::max());
+        if(m_root_volume)
+        {
+            changePage(m_root_volume->size() - m_renderwidgets.size());
+        }
         break;
     case Qt::Key_F:
         if (isFullScreen()) {
@@ -324,12 +332,17 @@ void MainWindow::setRoot(const QString & dirpath) {
 void MainWindow::setRoot(const QDir & dir) {
     m_root_dir = dir;
     m_fsmodel.setRootPath(dir.absolutePath());
+    qWarning() << "Root path changed: " << m_fsmodel.rootPath();
     emit emitRootPath(dir.absolutePath());
 
 }
 
 void MainWindow::changeVolume(int index){
     QModelIndex newind = m_fsmodel.index(m_curindex.row()+index,m_curindex.column(),m_curindex.parent());
+    qWarning() << "Current: " << m_fsmodel.filePath(m_curindex);
+    qWarning() << "Parent: " << m_fsmodel.filePath(m_curindex.parent());
+    qWarning() << "Next: " << m_fsmodel.filePath(newind);
+    qWarning() << "Root Path: " << m_fsmodel.rootPath();
     if(newind.isValid())
     {
 

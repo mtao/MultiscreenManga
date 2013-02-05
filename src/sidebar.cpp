@@ -7,18 +7,12 @@
 #include <QFileDialog>
 #include <QHeaderView>
 
-FileViewer::FileViewer(QWidget * parent ): QTreeView(parent) {
-    QFileSystemModel * model = new QFileSystemModel(this);
-    model->setResolveSymlinks(false);
-    model->setNameFilters(
-                Configuration().getSupportedFileFiltersList()
-                );
-    model->setNameFilterDisables(false);
-    model->setRootPath(QDir::currentPath());
+FileViewer::FileViewer( QFileSystemModel *model,QWidget * parent): QTreeView(parent) {
     header()->setMovable(true);
     this->setModel(model);
     this->setExpandsOnDoubleClick(false);
     this->setSortingEnabled(true);
+    this->sortByColumn(0,Qt::AscendingOrder);
     this->setRootIndex(model->index(QDir::currentPath()));
     this->header()->swapSections(1,3);
     this->header()->hideSection(2);//type
@@ -68,10 +62,10 @@ void Sidebar::modelItemSelected(const QModelIndex & index) {
     emit filePathSelected(static_cast<QFileSystemModel *>(tree->model())->filePath(index));
 }
 
-Sidebar::Sidebar(QWidget * parent): QWidget(parent), tree(0) {
+Sidebar::Sidebar(QFileSystemModel * model,QWidget * parent): QWidget(parent), tree(0) {
     QVBoxLayout * layout = new QVBoxLayout(this);
     setLayout(layout);
-    tree = new FileViewer(this);
+    tree = new FileViewer(model,this);
 
     connect(
                 tree, SIGNAL(doubleClicked(const QModelIndex &)),
