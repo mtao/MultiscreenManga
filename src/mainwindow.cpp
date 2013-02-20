@@ -206,7 +206,7 @@ void MainWindow::changePage(int index) {
         return;
         index = 0;
     }
-    if (index >= m_root_volume->size()) {
+    if (index > m_root_volume->size()-m_renderwidgets.size()) {
         changeVolume(1);
         return;
         index = m_root_volume->size()-m_renderwidgets.size();
@@ -270,7 +270,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
         changePage(0);
         break;
     case Qt::Key_End:
-        changePage(std::numeric_limits<uint>::max());
+        if(m_root_volume)
+        {
+        changePage(m_root_volume->size()-m_renderwidgets.size());
+        }
         break;
     case Qt::Key_F:
         if (isFullScreen()) {
@@ -307,6 +310,7 @@ void MainWindow::setRoot(const QDir & dir) {
 }
 
 void MainWindow::changeVolume(int index){
+    qWarning() << "Changing volume" << index;
     QModelIndex newind = m_fsmodel.index(m_curindex.row()+index,m_curindex.column(),m_curindex.parent());
     if(newind.isValid())
     {
