@@ -31,6 +31,8 @@ public:
     
     protected:
     void keyPressEvent(QKeyEvent *);
+    void mousePressEvent(QMouseEvent *);
+    void wheelEvent(QWheelEvent *);
 signals:
     void renderWidgetClosing(uint index);
     void passKeyPressEvent(QKeyEvent *);

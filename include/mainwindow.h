@@ -37,6 +37,8 @@ private:
 
 protected:
     void setFocus();
+    void mousePressEvent(QMouseEvent *);
+    void wheelEvent(QWheelEvent *);
 
 public slots:
     void openRootVolume();

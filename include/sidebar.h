@@ -8,7 +8,7 @@ class FileViewer: public QTreeView
 {
     Q_OBJECT
 public:
-    FileViewer(QWidget *parent = 0);
+    FileViewer(QFileSystemModel * model, QWidget *parent = 0);
 protected:
     void mousePressEvent(QMouseEvent * event);
 public slots:
@@ -21,7 +21,7 @@ class Sidebar: public QWidget
     Q_OBJECT
 
 public:
-    Sidebar(QWidget *parent = 0);
+    Sidebar(QFileSystemModel * model,QWidget *parent = 0);
 public slots:
     void modelItemSelected(const QModelIndex & modelIndex);
 signals:

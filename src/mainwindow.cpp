@@ -19,7 +19,12 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_page_num(0)
     , m_root_dir(QDir::currentPath()) {
+    m_fsmodel.setResolveSymlinks(false);
+    m_fsmodel.setNameFilters(
+                Configuration().getSupportedFileFiltersList()
+                );
     m_fsmodel.setNameFilterDisables(false);
+    m_fsmodel.sort(0,Qt::AscendingOrder);
     setRoot(m_root_dir);
 
     config = std::make_shared<Configuration>();
@@ -48,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     m_control = new QDockWidget(tr("Control"), this);
-    Sidebar * sidebar = new Sidebar(this);
+    Sidebar * sidebar = new Sidebar(&m_fsmodel,this);
     connect(sidebar, SIGNAL(filePathSelected(const QString &)),
             this, SLOT(openRootVolume(const QString &)));
     m_control->setWidget(sidebar);
@@ -149,6 +154,7 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
         qWarning() << "Finding index: " << m_root_volume->findIndex(path);
         emit changePage(m_root_volume->findIndex(filepath));
     }
+    centralWidget()->setFocus();
 }
 
 std::shared_ptr<MangaVolume> MainWindow::openVolume(const QString & filename) {
@@ -279,13 +285,17 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
         if (isFullScreen()) {
             showNormal();
             menuBar()->show();
+            m_control->show();
+
         } else {
             showFullScreen();
             if (menuBar()->isHidden()) {
                 menuBar()->show();
+
             } else {
                 menuBar()->hide();
             }
+            m_control->hide();
         }
         break;
     case Qt::Key_Escape:
@@ -298,6 +308,28 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     }
 }
 
+void MainWindow::mousePressEvent(QMouseEvent *event) {
+    switch (event->button()) {
+    case Qt::LeftButton:
+        if (event->modifiers() & Qt::ShiftModifier) {
+            previousPage();
+        } else {
+            nextPage();
+        }
+        break;
+    default:
+        QMainWindow::mousePressEvent(event);
+    }
+}
+
+void MainWindow::wheelEvent(QWheelEvent *event) {
+    if (event->delta() < 0) {
+        nextPage();
+    } else {
+        previousPage();
+    }
+}
+
 void MainWindow::setRoot(const QString & dirpath) {
     setRoot(QDir(scanForHomePath(dirpath)));
 
@@ -305,6 +337,7 @@ void MainWindow::setRoot(const QString & dirpath) {
 void MainWindow::setRoot(const QDir & dir) {
     m_root_dir = dir;
     m_fsmodel.setRootPath(dir.absolutePath());
+    qWarning() << "Root path changed: " << m_fsmodel.rootPath();
     emit emitRootPath(dir.absolutePath());
 
 }
@@ -312,6 +345,10 @@ void MainWindow::setRoot(const QDir & dir) {
 void MainWindow::changeVolume(int index){
     qWarning() << "Changing volume" << index;
     QModelIndex newind = m_fsmodel.index(m_curindex.row()+index,m_curindex.column(),m_curindex.parent());
+    qWarning() << "Current: " << m_fsmodel.filePath(m_curindex);
+    qWarning() << "Parent: " << m_fsmodel.filePath(m_curindex.parent());
+    qWarning() << "Next: " << m_fsmodel.filePath(newind);
+    qWarning() << "Root Path: " << m_fsmodel.rootPath();
     if(newind.isValid())
     {
 
