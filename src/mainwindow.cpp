@@ -154,6 +154,7 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
         qWarning() << "Finding index: " << m_root_volume->findIndex(path);
         emit changePage(m_root_volume->findIndex(filepath));
     }
+    centralWidget()->setFocus();
 }
 
 std::shared_ptr<MangaVolume> MainWindow::openVolume(const QString & filename) {
@@ -284,13 +285,17 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
         if (isFullScreen()) {
             showNormal();
             menuBar()->show();
+            m_control->show();
+
         } else {
             showFullScreen();
             if (menuBar()->isHidden()) {
                 menuBar()->show();
+
             } else {
                 menuBar()->hide();
             }
+            m_control->hide();
         }
         break;
     case Qt::Key_Escape:
