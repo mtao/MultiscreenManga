@@ -134,7 +134,7 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
         willFindIndex = true;
     }
     std::shared_ptr< MangaVolume> volume = openVolume(path);
-    if (volume == NULL) {
+    if (volume == static_cast<std::nullptr_t>(NULL)) {
         qWarning() << "Could not open path" << filepath;
         return;
     }
@@ -186,7 +186,7 @@ std::shared_ptr<MangaVolume> MainWindow::openVolume(const QString & filename) {
         } else {
             qWarning() << "Specified path" << filename
                        << "is not a directory or recognized image format!";
-            return NULL;
+            return static_cast<std::nullptr_t>(NULL);
         }
     }
 
