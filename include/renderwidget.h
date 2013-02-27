@@ -32,6 +32,7 @@ public:
     protected:
     void keyPressEvent(QKeyEvent *);
     void mousePressEvent(QMouseEvent *);
+    void mouseMoveEvent(QMouseEvent *);
     void wheelEvent(QWheelEvent *);
 signals:
     void renderWidgetClosing(uint index);
@@ -59,6 +60,10 @@ public slots:
     QPoint m_resolution;
     FIT_MODE m_fit_mode;
     uint m_rotation;
+    bool m_zoom;
+    float m_window_size;
+    float m_magnification;
+    QPointF m_pos;
     bool m_no_index_cleanup ;
     const GLuint m_vertex_attribute;
     void checkScale();

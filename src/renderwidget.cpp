@@ -13,13 +13,17 @@ RenderWidget::RenderWidget(
     , color(0)
     , m_volume(volume), m_index(index), m_page_num(page+index)
     , m_mutex(mutex)
-    , m_fit_mode(FM_BEST), m_rotation(0), m_no_index_cleanup(false)
+    , m_fit_mode(FM_BEST), m_rotation(0), m_zoom(false)
+    , m_window_size(.3)
+    , m_magnification(.1)
+    , m_no_index_cleanup(false)
     , m_vertex_attribute(false)
     , m_vertexBuffer(QGLBuffer::VertexBuffer)
     , m_program(new QGLShaderProgram(this)) {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setPage(page);
     setFocusPolicy(Qt::StrongFocus);
+    setMouseTracking(true);
 }
 
 void RenderWidget::setMangaVolume(std::shared_ptr<MangaVolume> volume) {
@@ -54,12 +58,11 @@ void RenderWidget::setPage(uint page) {
     m_page_texture_id = bindTexture(*img);
     checkScale();
 
-    //qWarning() << "Done loading page";
     update();
 }
 
 void RenderWidget::initializeGL() {
-    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_TEXTURE_2D);
     qglClearColor(QColor(0, 0, 0));
@@ -85,12 +88,45 @@ void RenderWidget::keyPressEvent(QKeyEvent *event) {
             rotatePage(1);
         }
         break;
+        case Qt::Key_Z:
+        m_zoom = !m_zoom;
+        update();
+        update();
+        break;
+        case Qt::Key_Plus:
+        m_magnification -= 0.005;
+        m_magnification = std::max(m_magnification,0.01f);
+        update();
+        break;
+        case Qt::Key_Minus:
+        m_magnification += 0.005;
+        update();
+        break;
+        case Qt::Key_0:
+        m_window_size += 0.005;
+        update();
+        break;
+        case Qt::Key_9:
+        m_window_size-= 0.005;
+        m_window_size = std::max(m_window_size,0.1f);
+        update();
+        break;
     default:
         emit passKeyPressEvent(event);
     }
 }
 
 void RenderWidget::mousePressEvent(QMouseEvent *event) {
+    event->ignore();
+}
+
+void RenderWidget::mouseMoveEvent(QMouseEvent *event) {
+    float x = (float(width())/height())*2*(float(event->x())/width()-.5);
+    float y = 2*(.5-float(event->y())/height());
+    m_pos = QPointF(x,y);
+    if(m_zoom) {
+        update();
+    }
     event->ignore();
 }
 
@@ -162,6 +198,38 @@ void RenderWidget::paintGL() {
     glTexCoord2d(0.0, 1.0);    glVertex2f(-1, 1);
     glTexCoord2d(1.0, 1.0);    glVertex2f(1, 1);
     glEnd();
+    if(m_zoom) {
+        glLoadIdentity();
+        glTranslatef(m_pos.x(),m_pos.y(),0.0f);
+        glRotatef(90*m_rotation, 0, 0, 1);
+        float imgx = m_pos.x() / m_scale.x()/2+.5;
+        float imgy = m_pos.y() / m_scale.y()/2+.5;
+        float ratio = m_scale.x() / m_scale.y();
+        if(m_rotation % 2 == 1) {
+             ratio = 1/ratio;
+             float tmp = imgx;
+             imgx = imgy;
+             imgy = tmp;
+             if(m_rotation == 1) {
+                 imgy = -imgy;
+             } else {
+                 imgx = -imgx;
+             }
+        } else if(m_rotation == 2) {
+                imgx = -imgx;
+                imgy = -imgy;
+        }
+        glBegin(GL_TRIANGLE_STRIP);
+        glTexCoord2d(imgx-m_magnification, imgy-ratio*m_magnification);
+        glVertex2f(-m_window_size, -m_window_size);
+        glTexCoord2d(imgx+m_magnification, imgy-ratio*m_magnification);
+        glVertex2f(m_window_size, -m_window_size);
+        glTexCoord2d(imgx-m_magnification, imgy+ratio*m_magnification);
+        glVertex2f(-m_window_size, m_window_size);
+        glTexCoord2d(imgx+m_magnification, imgy+ratio*m_magnification);
+        glVertex2f(m_window_size, m_window_size);
+        glEnd();
+    }
 }
 
 void RenderWidget::setIndex(int index) {
