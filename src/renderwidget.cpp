@@ -220,13 +220,13 @@ void RenderWidget::paintGL() {
                 imgy = -imgy;
         }
         glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2d(imgx-m_magnification, imgy-ratio*m_magnification);
+        glTexCoord2d(imgx-m_magnification/ratio, imgy-m_magnification);
         glVertex2f(-m_window_size, -m_window_size);
-        glTexCoord2d(imgx+m_magnification, imgy-ratio*m_magnification);
+        glTexCoord2d(imgx+m_magnification/ratio, imgy-m_magnification);
         glVertex2f(m_window_size, -m_window_size);
-        glTexCoord2d(imgx-m_magnification, imgy+ratio*m_magnification);
+        glTexCoord2d(imgx-m_magnification/ratio, imgy+m_magnification);
         glVertex2f(-m_window_size, m_window_size);
-        glTexCoord2d(imgx+m_magnification, imgy+ratio*m_magnification);
+        glTexCoord2d(imgx+m_magnification/ratio, imgy+m_magnification);
         glVertex2f(m_window_size, m_window_size);
         glEnd();
     }
