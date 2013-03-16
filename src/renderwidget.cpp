@@ -12,6 +12,7 @@ RenderWidget::RenderWidget(
     : QGLWidget(parent)
     , color(0)
     , m_volume(volume), m_index(index), m_page_num(page+index)
+    , m_page_texture_id(0)
     , m_mutex(mutex)
     , m_fit_mode(FM_BEST), m_rotation(0), m_zoom(false)
     , m_window_size(.3)
@@ -54,6 +55,9 @@ void RenderWidget::setPage(uint page) {
         img = std::shared_ptr<const QImage>(black);
     }
     makeCurrent();
+    if(m_page_texture_id != 0) {
+        glDeleteTextures(1,&m_page_texture_id);
+    }
     m_resolution = QPoint(img->width(), img->height());
     m_page_texture_id = bindTexture(*img);
     checkScale();
