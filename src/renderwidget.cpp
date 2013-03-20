@@ -5,6 +5,8 @@
 #include <QMatrix4x4>
 #include <QKeyEvent>
 #include <memory>
+#include <QApplication>
+#include <QDesktopWidget>
 
 RenderWidget::RenderWidget(
         std::mutex & mutex, uint page, uint index,
@@ -45,8 +47,9 @@ void RenderWidget::setPage(uint page) {
     volume_ptr->discardPage(m_page_num);
     m_page_num = page + m_index;
     qDebug() << __FUNCTION__ << m_page_num << "/" << volume_ptr->numPages();
-    //qWarning() << "Opening page: " << m_page_num;
-    std::shared_ptr<const QImage> img = volume_ptr->getImage(m_page_num);
+    QDesktopWidget * dw = QApplication::desktop();
+    QPointF scale(dw->physicalDpiX(), dw->physicalDpiY());
+    std::shared_ptr<const QImage> img = volume_ptr->getImage(m_page_num,scale);
     if (!img) {
         qWarning() << "Renderwidget " << m_index
                    << " reports that there is no page " << m_page_num;
@@ -178,9 +181,11 @@ void RenderWidget::resizeGL(int w, int h) {
     projection.ortho(-ratio, ratio, -1, 1, -1, 1);
     glMultMatrixd(projection.data());
     checkScale();
+    QDesktopWidget * dw = QApplication::desktop();
+    QPointF scale(dw->physicalDpiX(), dw->physicalDpiY());
     if (auto vol_ptr = m_volume.lock()) {
         if(vol_ptr->refreshOnResize()) {
-            vol_ptr->getImage(m_page_num, m_scale);
+            vol_ptr->getImage(m_page_num, scale);
         }
     }
 }

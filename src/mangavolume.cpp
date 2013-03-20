@@ -273,7 +273,7 @@ std::shared_ptr<const QImage> PDFMangaVolume::getImage(uint page_num, QPointF sc
     //qWarning() << scale;
     if(m_doc && page_num < m_doc->numPages()) {
         img = std::shared_ptr<const QImage>(
-                    new const QImage(m_doc->page(page_num)->renderToImage(72.0f*scale.x(),72.0f*scale.y()))
+                    new const QImage(m_doc->page(page_num)->renderToImage(scale.x(),scale.y()))
                     );
         //m_active_pages.insert(img);
     } else {
