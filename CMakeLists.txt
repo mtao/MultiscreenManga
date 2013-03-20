@@ -36,6 +36,7 @@ SET(MultiscreenManga_HEADERS
 SET(MultiscreenManga_SOURCES ${MultiscreenManga_SOURCES} ${MultiscreenManga_HEADERS})
 
 # Qt
+SET(QT_QMAKE_EXECUTABLE qmake-qt4 qmake4 qmake)
 FIND_PACKAGE(Qt4 REQUIRED)
 SET(QT_USE_QTOPENGL TRUE)
 QT4_WRAP_CPP(MultiscreenManga_HEADERS_MOC ${MultiscreenManga_HEADERS_TOMOC})
