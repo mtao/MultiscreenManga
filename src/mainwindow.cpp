@@ -134,7 +134,7 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
         willFindIndex = true;
     }
     std::shared_ptr< MangaVolume> volume = openVolume(path);
-    if (volume == NULL) {
+    if (volume == nullptr) {
         qWarning() << "Could not open path" << filepath;
         return;
     }
@@ -172,7 +172,7 @@ std::shared_ptr<MangaVolume> MainWindow::openVolume(const QString & filename) {
     else {
         QFileInfo fileInfo(filename);
         QString extension = fileInfo.completeSuffix();
-        QString volPath = NULL;
+        QString volPath = nullptr;
         if (fileInfo.isDir()) {
             // If it's a directory, then use it as the volume root
             volPath = fileInfo.absoluteFilePath();
@@ -181,12 +181,12 @@ std::shared_ptr<MangaVolume> MainWindow::openVolume(const QString & filename) {
             volPath = fileInfo.absolutePath();
         }
 
-        if (volPath != NULL) {
+        if (volPath != nullptr) {
             volume = new DirectoryMangaVolume(volPath, this);
         } else {
             qWarning() << "Specified path" << filename
                        << "is not a directory or recognized image format!";
-            return NULL;
+            return nullptr;
         }
     }
 
