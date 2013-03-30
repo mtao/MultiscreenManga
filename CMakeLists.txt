@@ -49,3 +49,5 @@ ADD_EXECUTABLE(MultiscreenManga
     ${MultiscreenManga_HEADERS}
     ${MultiscreenManga_HEADERS_MOC})
 TARGET_LINK_LIBRARIES(MultiscreenManga ${QT_LIBRARIES} GL poppler-qt4)
+
+INSTALL(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/MultiscreenManga DESTINATION bin)
