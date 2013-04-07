@@ -94,12 +94,32 @@ private:
 class CompressedFileMangaVolume : public DirectoryMangaVolume
 {
 public:
-    explicit CompressedFileMangaVolume(const QString & filepath, QObject *parent = 0, bool do_cleanup = true);
+    explicit CompressedFileMangaVolume(const QString & filepath
+            , QObject *parent = 0, bool do_cleanup = true);
     ~CompressedFileMangaVolume();
 
+protected:
+    virtual void setProgramAndArguments(const QString & filepath, QString & program, QStringList & arguments) = 0;
+    void createOutputDir(const QString & filepath);
+    
 private:
     void cleanUp(const QString & path);
     bool m_do_cleanup;
+};
+
+class ZipFileMangaVolume: public CompressedMangaVolume {
+    public:
+    explicit ZipFileMangaVolume(const QString & filepath
+            , QObject *parent = 0, bool do_cleanup = true);
+    protected:
+    virtual void setProgramAndArguments(const QString & filepath, const QString & outpath, QString & program, QStringList & arguments);
+};
+class RarFileMangaVolume: public CompressedMangaVolume {
+    public:
+    explicit RarFileMangaVolume(const QString & filepath
+            , QObject *parent = 0, bool do_cleanup = true);
+    protected:
+    virtual void setProgramAndArguments(const QString & filepath, QString & program, QStringList & arguments);
 };
 
 

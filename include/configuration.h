@@ -31,6 +31,7 @@ class Configuration
 private:
     ConfigurationHidden & config;
 public:
+    enum FileType {ZIP, RAR, PDF};
     Configuration();
     const QStringList & getSupportedImageFormats() const;
     const QStringList & getSupportedVolumeFormats() const;
@@ -39,6 +40,7 @@ public:
 
     const bool isSupportedImageFormat(const QString & str) const;
     const bool isSupportedVolumeFormat(const QString & str) const;
+    static QString getMimeType(const QString& filename);
 };
 
 #endif

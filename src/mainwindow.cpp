@@ -129,7 +129,8 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
         setRoot(fileinfo.dir().absolutePath());
     }
     bool willFindIndex = false;
-    if(fileinfo.isFile() && config->isSupportedImageFormat(fileinfo.completeSuffix())) {
+    if(fileinfo.isFile() && config->isSupportedImageFormat(path)) {
+    //if(fileinfo.isFile() && config->isSupportedImageFormat(fileinfo.completeSuffix())) {
         path = fileinfo.dir().absolutePath();
         willFindIndex = true;
     }
@@ -159,6 +160,7 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
 
 std::shared_ptr<MangaVolume> MainWindow::openVolume(const QString & filename) {
     MangaVolume *volume;
+    QString format = Configuration::getMimeType(path);
     if (filename.endsWith(tr(".pdf"))) {
         volume = new PDFMangaVolume(filename, this);
     }

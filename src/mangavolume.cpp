@@ -151,47 +151,13 @@ void DirectoryMangaVolume::prefetch() {
 
 CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, QObject *parent, bool do_cleanup)
     : DirectoryMangaVolume(parent), m_do_cleanup(do_cleanup) {
-    QStringList path_split = filepath.split("/");
-    QString filename = path_split.last();
-    QStringList filename_split = filename.split(".");
-    if (filename_split.length() > 1) {
-        filename_split.pop_back();
-    }
-
-    QDir dir;
-    do {
-        // keep trying hashes until dir exists.
-        // no one could have taken all hashes
-        QTime time = QTime::currentTime();
-        QString toHash = filepath+time.toString();
-        qWarning() <<  toHash;
-        QString hash = QString(QCryptographicHash::hash(
-                                   toHash.toAscii(),
-                                   QCryptographicHash::Sha1).toHex());
-        m_file_dir = tr("/tmp/") + filename_split.join(tr("."))
-                + tr("-") + hash;
-        qWarning() << "Making directory: " << m_file_dir;
-        dir = QDir(m_file_dir);
-    } while (dir.exists());
-    dir.mkpath(".");
-
+    createOutputDir(filepath);//Sets m_file_dir
     QString program = "";
     QStringList arguments;
-    if (filename.endsWith(tr(".zip")) || filename.endsWith(tr(".cbz"))) {
-        program = tr("unzip");
-        arguments << tr("-d") << m_file_dir;
-        arguments << filepath;
-    } else if (filename.endsWith(tr(".rar")) || filename.endsWith(tr(".cbr"))) {
-        program = tr("unrar");
-        arguments << tr("x");
-        arguments << filepath;
-        arguments << m_file_dir;
-    } else {
-        qWarning() << "Unknown filetype for file " << filename;
-        return;
-    }
+    setProgramAndArguments(filepath,m_file_dir,m_,program,arguments);
 
-    qWarning() << "Open file?: " << filename;
+
+    qWarning() << "Open file?: " << filepath;
     QProcess * myProcess = new QProcess(this);
 
     // Start the extraction program
@@ -229,6 +195,32 @@ CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, Q
     }
 }
 
+void CompressedFileMangaVolume::createOutputDir(const QString & filepath) {
+    QStringList path_split = filepath.split("/");
+    QString filename = path_split.last();
+    QStringList filename_split = filename.split(".");
+    if (filename_split.length() > 1) {
+        filename_split.pop_back();//for whatever reason we don't want the last file extension
+    }
+
+    QDir dir;
+    do {
+        // keep trying hashes until dir exists.
+        // no one could have taken all hashes
+        QTime time = QTime::currentTime();
+        QString toHash = filepath+time.toString();
+        qWarning() <<  toHash;
+        QString hash = QString(QCryptographicHash::hash(
+                                   toHash.toAscii(),
+                                   QCryptographicHash::Sha1).toHex());
+        m_file_dir = tr("/tmp/") + filename_split.join(tr("."))
+                + tr("-") + hash;
+        qWarning() << "Making directory: " << m_file_dir;
+        dir = QDir(m_file_dir);
+    } while (dir.exists());
+    dir.mkpath(".");
+}
+
 CompressedFileMangaVolume::~CompressedFileMangaVolume() {
     if (m_do_cleanup) {
 
@@ -252,6 +244,34 @@ void CompressedFileMangaVolume::cleanUp(const QString &path) {
         QFile::remove(path);
     }
 }
+
+//ZipFileMangaVolume
+
+ZipFileMangaVolume::ZipFileMangaVolume(const QString & filepath, QObject *parent, bool do_cleanup )
+    : CompressedFileMangaVolume(filepath,parent,do_cleanup)
+{}
+
+void ZipFileMangaVolume::setProgramAndArguments(const QString & filepath, const QString & outpath, QString & program, QStringList & arguments) {
+    program = tr("unzip");
+    arguments.clear();
+    arguments << tr("-d") << outpath;
+    arguments << filepath;
+
+}
+
+
+//RarFileMangaVolume
+RarFileMangaVolume::ZipFileMangaVolume(const QString & filepath, QObject *parent, bool do_cleanup )
+    : CompressedFileMangaVolume(filepath,parent,do_cleanup)
+{}
+
+void RarFileMangaVolume::setProgramAndArguments(const QString & filepath, const QString & outpath, QString & program, QStringList & arguments) {
+    program = tr("unrar");
+        arguments << tr("x");
+        arguments << filepath;
+        arguments << outpath;
+}
+
 
 // PDFMangaVolume
 
