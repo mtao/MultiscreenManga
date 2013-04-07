@@ -159,38 +159,7 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
 }
 
 std::shared_ptr<MangaVolume> MainWindow::openVolume(const QString & filename) {
-    MangaVolume *volume;
-    QString format = Configuration::getMimeType(path);
-    if (filename.endsWith(tr(".pdf"))) {
-        volume = new PDFMangaVolume(filename, this);
-    }
-    else if (filename.endsWith(tr(".zip"))
-             || filename.endsWith(tr(".rar"))
-             || filename.endsWith(tr(".cbr"))
-             || filename.endsWith(tr(".cbz"))
-             ) {
-        volume = new CompressedFileMangaVolume(filename, this);
-    }
-    else {
-        QFileInfo fileInfo(filename);
-        QString extension = fileInfo.completeSuffix();
-        QString volPath = nullptr;
-        if (fileInfo.isDir()) {
-            // If it's a directory, then use it as the volume root
-            volPath = fileInfo.absoluteFilePath();
-        } else if (config->isSupportedImageFormat(extension)) {
-            // If it's a supported image file, use it's parent
-            volPath = fileInfo.absolutePath();
-        }
-
-        if (volPath != nullptr) {
-            volume = new DirectoryMangaVolume(volPath, this);
-        } else {
-            qWarning() << "Specified path" << filename
-                       << "is not a directory or recognized image format!";
-            return nullptr;
-        }
-    }
+    MangaVolume *volume = MangaVolume::createVolume(filename);
 
     std::shared_ptr<MangaVolume> volume_ptr(volume);
     return volume_ptr;

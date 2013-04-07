@@ -1,6 +1,6 @@
 #include "include/configuration.h"
 #include <magic.h>
-
+#include <QFileInfo>
 // ConfigurationHidden
 
 ConfigurationHidden::ConfigurationHidden()
@@ -82,7 +82,7 @@ QString Configuration::getMimeType(const QString& filename) {
     {
         if (magic_load(magicMimePredictor, 0)) { // if not 0 - error
             qDebug() << "libmagic: Can't load magic database - " +
-                QString(magic_error(magicMimePredictor));
+                        QString(magic_error(magicMimePredictor));
             magic_close(magicMimePredictor); // Close predictor
         }
         else
@@ -94,33 +94,37 @@ QString Configuration::getMimeType(const QString& filename) {
             magic_close(magicMimePredictor); // Close predictor
         }
     }
-    qDebug() << "libmagic: result mime type - " + result + "for file: " + 
-        filename;
+    qDebug() << "libmagic: result mime type - " + result + "for file: " +
+                filename;
     return result;
 }
 
-Configuration::FileType Configuration::getVolumeFormat(const QString & filepath) {
-    FileType result = UNKNOWN;
-    QString mimetype = getMimeType(filepath);
-    if(mimetype == tr("inode/directory")) {
+Configuration::FileType Configuration::getVolumeFormat(const QString & filepath) const {
+    QFileInfo info(filepath);
+    if(!info.exists()) {
+        return UNKNOWN;
+    }
+    if(info.isDir()) {
         return DIRECTORY;
-    } else if(mimetype.startsWith("image")) {
+    }
+    QString mimetype = getMimeType(filepath);
+    if(mimetype.startsWith("image")) {
         return IMAGE;
-    } else if(mimetype == tr("application/zip")) {
+    } else if(mimetype == QObject::tr("application/zip")) {
         return ZIP;
-    } else if(mimetype == tr("application/x-rar")) {
+    } else if(mimetype == QObject::tr("application/x-rar")) {
         return RAR;
     } else {
         if(filepath.endsWith(".pdf")) {
             return PDF;
-        }
-        else if(filepath.endsWith(".zip") || filepath.endsWith(".cbz")) {
+        } else if(filepath.endsWith(".zip") || filepath.endsWith(".cbz")) {
             return ZIP;
         } else if(filepath.endsWith(".rar") || filepath.endsWith(".cbr")) {
             return RAR;
+        } else if(isSupportedImageFormat(filepath.split(".").last())) {
+            return IMAGE;
         }
-
     }
-    return result;
+
 }
 
