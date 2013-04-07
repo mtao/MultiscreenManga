@@ -20,7 +20,8 @@ RenderWidget::RenderWidget(
     , m_no_index_cleanup(false)
     , m_vertex_attribute(false)
     , m_vertexBuffer(QGLBuffer::VertexBuffer)
-    , m_program(new QGLShaderProgram(this)) {
+    , m_pageShaderProgram(0)
+    , m_zoomShaderProgram(0) {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setPage(page);
     setFocusPolicy(Qt::StrongFocus);
@@ -70,7 +71,35 @@ void RenderWidget::initializeGL() {
     glEnable(GL_CULL_FACE);
     glEnable(GL_TEXTURE_2D);
     qglClearColor(QColor(0, 0, 0));
+    initializeShaders();
 }
+
+
+#ifdef GLSL_SHADERS_ENABLED
+void RenderWidget::initializeShaders() {
+    m_pageShaderProgram = new QGLShaderProgram(this);
+    m_zoomShaderProgram = new QGLShaderProgram(this);
+    m_pageShaderProgram->addShaderFromSourceCode(QGLShader::Vertex,
+            "uniform highp mat4 transform;\n"
+            "attribute highp vec2 coord;\n"//Expect {0,1}\times{0,1}
+            "varying vec2 st;\n"
+            "void main(void)\n"
+            "{\n"
+            "   gl_Position = transform * vec4(2*coord-1,0,1);\n"
+            "   st = coord;\n"
+            "}\n");
+    m_pageShaderProgram->addShaderFromSourceCode(QGLShader::Fragment,
+            "uniform sampler2D texture;\n"
+            "varying vec2 st;\n"
+            "void main(void)\n"
+            "{\n"
+            "   gl_FragColor = texture2D(texture,st);\n"
+            "}\n");
+
+
+}
+
+#endif
 
 void RenderWidget::keyPressEvent(QKeyEvent *event) {
     switch (event->key()) {
@@ -190,6 +219,8 @@ void RenderWidget::paintGL() {
     if (m_volume.expired()) {
         return;
     }
+#ifdef GLSL_SHADERS_ENABLED
+#else
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glScalef(m_scale.x(), m_scale.y(), 1.0);
@@ -234,6 +265,7 @@ void RenderWidget::paintGL() {
         glVertex2f(m_window_size, m_window_size);
         glEnd();
     }
+#endif
 }
 
 void RenderWidget::setIndex(int index) {

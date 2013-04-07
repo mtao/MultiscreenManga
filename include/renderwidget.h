@@ -13,6 +13,9 @@
 
 
 class MainWindow;
+#ifdef USE_GLSL_SHADERS//If someone hasn't already said we want shaders
+#define GLSL_SHADERS_ENABLED
+#endif
 
 class RenderWidget : public QGLWidget, protected QGLFunctions
 {
@@ -48,6 +51,9 @@ public slots:
     void initializeGL();
     void resizeGL(int w, int h);
     void rotatePage(int i);
+#ifdef GLSL_SHADERS_ENABLED
+    void initializeShaders();
+#endif
     float color;
     
     private:
@@ -70,10 +76,11 @@ public slots:
 
 
 
-
+#ifdef GLSL_SHADERS_ENABLED
     private:
     QGLBuffer m_vertexBuffer;
-    QGLShaderProgram * m_program;
+    QGLShaderProgram * m_pageShaderProgram, m_zoomShaderProgram;
+#endif
 };
 
 #include <QDebug>
