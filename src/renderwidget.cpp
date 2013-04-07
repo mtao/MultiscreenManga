@@ -19,9 +19,12 @@ RenderWidget::RenderWidget(
     , m_magnification(.1)
     , m_no_index_cleanup(false)
     , m_vertex_attribute(false)
+#ifdef GLSL_SHADERS_ENABLED
     , m_vertexBuffer(QGLBuffer::VertexBuffer)
     , m_pageShaderProgram(0)
-    , m_zoomShaderProgram(0) {
+    , m_zoomShaderProgram(0)
+#endif
+{
     setAttribute(Qt::WA_DeleteOnClose, true);
     setPage(page);
     setFocusPolicy(Qt::StrongFocus);
