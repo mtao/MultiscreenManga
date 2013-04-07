@@ -98,3 +98,29 @@ QString Configuration::getMimeType(const QString& filename) {
         filename;
     return result;
 }
+
+Configuration::FileType Configuration::getVolumeFormat(const QString & filepath) {
+    FileType result = UNKNOWN;
+    QString mimetype = getMimeType(filepath);
+    if(mimetype == tr("inode/directory")) {
+        return DIRECTORY;
+    } else if(mimetype.startsWith("image")) {
+        return IMAGE;
+    } else if(mimetype == tr("application/zip")) {
+        return ZIP;
+    } else if(mimetype == tr("application/x-rar")) {
+        return RAR;
+    } else {
+        if(filepath.endsWith(".pdf")) {
+            return PDF;
+        }
+        else if(filepath.endsWith(".zip") || filepath.endsWith(".cbz")) {
+            return ZIP;
+        } else if(filepath.endsWith(".rar") || filepath.endsWith(".cbr")) {
+            return RAR;
+        }
+
+    }
+    return result;
+}
+
