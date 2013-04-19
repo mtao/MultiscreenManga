@@ -8,6 +8,24 @@
 #include <QDebug>
 #include <QDir>
 
+
+MangaVolume * MangaVolume::createVolume(const QString &filepath) {
+    Configuration::FileType format = Configuration().getVolumeFormat(filepath);
+    switch(format) {
+    case Configuration::PDF:
+        return new PDFMangaVolume(filepath);
+    case Configuration::DIRECTORY:
+        return new DirectoryMangaVolume(filepath);
+    case Configuration::ZIP:
+        return new ZipFileMangaVolume(filepath);
+    case Configuration::RAR:
+        return new RarFileMangaVolume(filepath);
+        case Configuration::IMAGE:
+        return new DirectoryMangaVolume(QFileInfo(filepath).absolutePath());
+    }
+}
+
+
 // DirectoryMangaVolume
 
 DirectoryMangaVolume::DirectoryMangaVolume(QObject * parent, int prefetch_width)
@@ -151,13 +169,16 @@ void DirectoryMangaVolume::prefetch() {
 
 CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, QObject *parent, bool do_cleanup)
     : DirectoryMangaVolume(parent), m_do_cleanup(do_cleanup) {
+    createOutputDir(filepath);//Sets m_file_dir
+}
+
+void CompressedFileMangaVolume::createOutputDir(const QString & filepath) {
     QStringList path_split = filepath.split("/");
     QString filename = path_split.last();
     QStringList filename_split = filename.split(".");
     if (filename_split.length() > 1) {
-        filename_split.pop_back();
+        filename_split.pop_back();//for whatever reason we don't want the last file extension
     }
-
     QDir dir;
     do {
         // keep trying hashes until dir exists.
@@ -174,37 +195,27 @@ CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, Q
         dir = QDir(m_file_dir);
     } while (dir.exists());
     dir.mkpath(".");
+}
 
-    QString program = "";
-    QStringList arguments;
-    if (filename.endsWith(tr(".zip")) || filename.endsWith(tr(".cbz"))) {
-        program = tr("unzip");
-        arguments << tr("-d") << m_file_dir;
-        arguments << filepath;
-    } else if (filename.endsWith(tr(".rar")) || filename.endsWith(tr(".cbr"))) {
-        program = tr("unrar");
-        arguments << tr("x");
-        arguments << filepath;
-        arguments << m_file_dir;
-    } else {
-        qWarning() << "Unknown filetype for file " << filename;
-        return;
-    }
+void CompressedFileMangaVolume::extractToDir() {
+//    QString program = "";
+//    QStringList arguments;
+//    setProgramAndArguments(filepath,m_file_dir,program,arguments);
 
-    qWarning() << "Open file?: " << filename;
+
     QProcess * myProcess = new QProcess(this);
 
     // Start the extraction program
-    myProcess->start(program, arguments);
+    myProcess->start(m_programName, m_programArguments);
 
     // Check to make sure it started correctly
     if (!myProcess->waitForStarted()) {
         switch (myProcess->error()) {
         case QProcess::FailedToStart:
-            qWarning() << "Failed to start program" << program << ". Is it installed correctly?";
+            qWarning() << "Failed to start program" << m_programName<< ". Is it installed correctly?";
             break;
         case QProcess::Crashed:
-            qWarning() << "Program" << program << "crashed.";
+            qWarning() << "Program" << m_programName << "crashed.";
             break;
         default:
             qWarning() << "QProcess::ProcessError code " << myProcess->error();
@@ -214,7 +225,7 @@ CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, Q
 
     // Check to make sure it finished correctly
     if (!myProcess->waitForFinished()) {
-        qWarning() << program << "was unable to extract file " << filepath;
+        qWarning() << m_programName << "was unable to complete with arguments" << m_programArguments;
         // TODO(umbrant): capture stdout/stderr to show the user
         return;
     }
@@ -227,6 +238,7 @@ CompressedFileMangaVolume::CompressedFileMangaVolume(const QString & filepath, Q
         page.getFilename().size();
         // TODO(mtao): processing?
     }
+
 }
 
 CompressedFileMangaVolume::~CompressedFileMangaVolume() {
@@ -252,6 +264,33 @@ void CompressedFileMangaVolume::cleanUp(const QString &path) {
         QFile::remove(path);
     }
 }
+
+//ZipFileMangaVolume
+
+ZipFileMangaVolume::ZipFileMangaVolume(const QString & filepath, QObject *parent, bool do_cleanup )
+    : CompressedFileMangaVolume(filepath
+                                ,parent,do_cleanup) {
+    m_programName = tr("unzip");
+    m_programArguments.clear();
+    m_programArguments << tr("-d") << m_file_dir;
+    m_programArguments << filepath;
+    extractToDir();
+
+}
+
+
+//RarFileMangaVolume
+RarFileMangaVolume::RarFileMangaVolume(const QString & filepath, QObject *parent, bool do_cleanup )
+    : CompressedFileMangaVolume(filepath
+                                ,parent,do_cleanup)
+{
+    m_programName= tr("unrar");
+    m_programArguments << tr("x");
+    m_programArguments << filepath;
+    m_programArguments << m_file_dir;
+    extractToDir();
+}
+
 
 // PDFMangaVolume
 

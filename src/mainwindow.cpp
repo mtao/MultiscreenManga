@@ -129,12 +129,13 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
         setRoot(fileinfo.dir().absolutePath());
     }
     bool willFindIndex = false;
-    if(fileinfo.isFile() && config->isSupportedImageFormat(fileinfo.completeSuffix())) {
+    if(fileinfo.isFile() && config->isSupportedImageFormat(path)) {
+    //if(fileinfo.isFile() && config->isSupportedImageFormat(fileinfo.completeSuffix())) {
         path = fileinfo.dir().absolutePath();
         willFindIndex = true;
     }
     std::shared_ptr< MangaVolume> volume = openVolume(path);
-    if (volume == NULL) {
+    if (volume == nullptr) {
         qWarning() << "Could not open path" << filepath;
         return;
     }
@@ -158,37 +159,7 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
 }
 
 std::shared_ptr<MangaVolume> MainWindow::openVolume(const QString & filename) {
-    MangaVolume *volume;
-    if (filename.endsWith(tr(".pdf"))) {
-        volume = new PDFMangaVolume(filename, this);
-    }
-    else if (filename.endsWith(tr(".zip"))
-             || filename.endsWith(tr(".rar"))
-             || filename.endsWith(tr(".cbr"))
-             || filename.endsWith(tr(".cbz"))
-             ) {
-        volume = new CompressedFileMangaVolume(filename, this);
-    }
-    else {
-        QFileInfo fileInfo(filename);
-        QString extension = fileInfo.completeSuffix();
-        QString volPath = NULL;
-        if (fileInfo.isDir()) {
-            // If it's a directory, then use it as the volume root
-            volPath = fileInfo.absoluteFilePath();
-        } else if (config->isSupportedImageFormat(extension)) {
-            // If it's a supported image file, use it's parent
-            volPath = fileInfo.absolutePath();
-        }
-
-        if (volPath != NULL) {
-            volume = new DirectoryMangaVolume(volPath, this);
-        } else {
-            qWarning() << "Specified path" << filename
-                       << "is not a directory or recognized image format!";
-            return NULL;
-        }
-    }
+    MangaVolume *volume = MangaVolume::createVolume(filename);
 
     std::shared_ptr<MangaVolume> volume_ptr(volume);
     return volume_ptr;

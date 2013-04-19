@@ -1,5 +1,6 @@
 #include "include/configuration.h"
-
+#include <magic.h>
+#include <QFileInfo>
 // ConfigurationHidden
 
 ConfigurationHidden::ConfigurationHidden()
@@ -64,3 +65,66 @@ const bool Configuration::isSupportedImageFormat(const QString & str) const {
 const bool Configuration::isSupportedVolumeFormat(const QString & str) const {
     return getSupportedVolumeFormats().contains(str.toLower());
 }
+
+
+//This is borrowed from 
+//http://va-sorokin.blogspot.ca/2011/03/how-to-get-mime-type-on-nix-system.html
+#include <QDebug>
+#include <magic.h>
+QString Configuration::getMimeType(const QString& filename) {
+    QString result("application/octet-stream");
+    magic_t magicMimePredictor;
+    magicMimePredictor = magic_open(MAGIC_MIME_TYPE); // Open predictor
+    if (!magicMimePredictor) {
+        qDebug() << "libmagic: Unable to initialize magic library";
+    }
+    else
+    {
+        if (magic_load(magicMimePredictor, 0)) { // if not 0 - error
+            qDebug() << "libmagic: Can't load magic database - " +
+                        QString(magic_error(magicMimePredictor));
+            magic_close(magicMimePredictor); // Close predictor
+        }
+        else
+        {
+            char *file = filename.toAscii().data();
+            const char *mime;
+            mime = magic_file(magicMimePredictor, file); // getting mime-type
+            result = QString(mime);
+            magic_close(magicMimePredictor); // Close predictor
+        }
+    }
+    qDebug() << "libmagic: result mime type - " + result + "for file: " +
+                filename;
+    return result;
+}
+
+Configuration::FileType Configuration::getVolumeFormat(const QString & filepath) const {
+    QFileInfo info(filepath);
+    if(!info.exists()) {
+        return UNKNOWN;
+    }
+    if(info.isDir()) {
+        return DIRECTORY;
+    }
+    QString mimetype = getMimeType(filepath);
+    if(mimetype.startsWith("image")) {
+        return IMAGE;
+    } else if(mimetype == QObject::tr("application/zip")) {
+        return ZIP;
+    } else if(mimetype == QObject::tr("application/x-rar")) {
+        return RAR;
+    } else {
+        if(filepath.endsWith(".pdf")) {
+            return PDF;
+        } else if(filepath.endsWith(".zip") || filepath.endsWith(".cbz")) {
+            return ZIP;
+        } else if(filepath.endsWith(".rar") || filepath.endsWith(".cbr")) {
+            return RAR;
+        } else if(isSupportedImageFormat(filepath.split(".").last())) {
+            return IMAGE;
+        }
+    }
+
+}
+
