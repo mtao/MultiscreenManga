@@ -49,13 +49,11 @@ public:
 protected:
     QString m_file_dir;
 public slots:
-    virtual void getNumRenderWidgets(int) {};
+    virtual void getNumRenderWidgets(int) {}
 };
-
 
 class DirectoryMangaVolume : public MangaVolume
 {
-    Q_OBJECT
 public:
     explicit DirectoryMangaVolume(QObject * parent = 0, int prefetch_width=-1);
     explicit DirectoryMangaVolume(const QString & dirpath, QObject *parent = 0, int prefetch_width=-1);
@@ -105,7 +103,6 @@ private:
 
 class PDFMangaVolume : public MangaVolume
 {
-    Q_OBJECT
 public:
     explicit PDFMangaVolume(const QString filepath, QObject *parent = 0);
     uint size() const;
