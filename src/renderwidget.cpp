@@ -60,6 +60,9 @@ void RenderWidget::setPage(uint page) {
     }
     m_resolution = QPoint(img->width(), img->height());
     m_page_texture_id = bindTexture(*img);
+    glBindTexture(GL_TEXTURE_2D, m_page_texture_id);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     checkScale();
 
     update();
