@@ -61,8 +61,8 @@ void RenderWidget::setPage(uint page) {
     m_resolution = QPoint(img->width(), img->height());
     m_page_texture_id = bindTexture(*img);
     glBindTexture(GL_TEXTURE_2D, m_page_texture_id);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     checkScale();
 
     update();
@@ -226,6 +226,8 @@ void RenderWidget::paintGL() {
                 imgx = -imgx;
                 imgy = -imgy;
         }
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2d(imgx-m_magnification/ratio, imgy-m_magnification);
         glVertex2f(-m_window_size, -m_window_size);
@@ -236,6 +238,8 @@ void RenderWidget::paintGL() {
         glTexCoord2d(imgx+m_magnification/ratio, imgy+m_magnification);
         glVertex2f(m_window_size, m_window_size);
         glEnd();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
 }
 

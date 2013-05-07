@@ -22,6 +22,8 @@ MangaVolume * MangaVolume::createVolume(const QString &filepath) {
         return new RarFileMangaVolume(filepath);
         case Configuration::IMAGE:
         return new DirectoryMangaVolume(QFileInfo(filepath).absolutePath());
+        default:
+        return nullptr;
     }
 }
 

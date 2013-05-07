@@ -125,6 +125,7 @@ Configuration::FileType Configuration::getVolumeFormat(const QString & filepath)
             return IMAGE;
         }
     }
+    return UNKNOWN;
 
 }
 
