@@ -3,7 +3,7 @@
 
 #include <QStringList>
 #include <QString>
-#include <QImageReader>
+#include <QFileInfo>
 
 /**
  * This should never be instantiated. Initialization happens in 
@@ -41,7 +41,7 @@ public:
     const bool isSupportedImageFormat(const QString & str) const;
     const bool isSupportedVolumeFormat(const QString & str) const;
     FileType getVolumeFormat(const QString & filename) const;
-    static QString getMimeType(const QString& filename);
+    static QString getMimeType(const QFileInfo& filename);
 };
 
 #endif

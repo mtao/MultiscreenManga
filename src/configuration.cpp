@@ -1,6 +1,6 @@
 #include "include/configuration.h"
 #include <magic.h>
-#include <QFileInfo>
+#include <QImageReader>
 // ConfigurationHidden
 
 ConfigurationHidden::ConfigurationHidden()
@@ -70,8 +70,7 @@ const bool Configuration::isSupportedVolumeFormat(const QString & str) const {
 //This is borrowed from 
 //http://va-sorokin.blogspot.ca/2011/03/how-to-get-mime-type-on-nix-system.html
 #include <QDebug>
-#include <magic.h>
-QString Configuration::getMimeType(const QString& filename) {
+QString Configuration::getMimeType(const QFileInfo& info) {
     QString result("application/octet-stream");
     magic_t magicMimePredictor;
     magicMimePredictor = magic_open(MAGIC_MIME_TYPE); // Open predictor
@@ -87,7 +86,7 @@ QString Configuration::getMimeType(const QString& filename) {
         }
         else
         {
-            char *file = filename.toAscii().data();
+            char *file = info.canonicalFilePath().toAscii().data();
             const char *mime;
             mime = magic_file(magicMimePredictor, file); // getting mime-type
             result = QString(mime);
@@ -95,7 +94,7 @@ QString Configuration::getMimeType(const QString& filename) {
         }
     }
     qDebug() << "libmagic: result mime type - " + result + "for file: " +
-                filename;
+                info.canonicalFilePath();
     return result;
 }
 
@@ -107,7 +106,7 @@ Configuration::FileType Configuration::getVolumeFormat(const QString & filepath)
     if(info.isDir()) {
         return DIRECTORY;
     }
-    QString mimetype = getMimeType(filepath);
+    QString mimetype = getMimeType(info);
     if(mimetype.startsWith("image")) {
         return IMAGE;
     } else if(mimetype == QObject::tr("application/zip")) {
@@ -115,16 +114,19 @@ Configuration::FileType Configuration::getVolumeFormat(const QString & filepath)
     } else if(mimetype == QObject::tr("application/x-rar")) {
         return RAR;
     } else {
+        qDebug() << "Mime detection failed, falling back onto file endings";
         if(filepath.endsWith(".pdf")) {
             return PDF;
         } else if(filepath.endsWith(".zip") || filepath.endsWith(".cbz")) {
             return ZIP;
+            qDebug() << "Apparently its a zip";
         } else if(filepath.endsWith(".rar") || filepath.endsWith(".cbr")) {
             return RAR;
         } else if(isSupportedImageFormat(filepath.split(".").last())) {
             return IMAGE;
         }
     }
+    qDebug() << "Don't know the file type, going with unknown...";
     return UNKNOWN;
 
 }
