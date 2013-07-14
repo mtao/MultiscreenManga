@@ -66,6 +66,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     initializeKeyBindings();
     setCentralWidget(main_widget);
+    main_widget->setFocus(Qt::ActiveWindowFocusReason);
 }
 
 void MainWindow::setFocus() {
@@ -171,23 +172,17 @@ void MainWindow::initializeKeyBindings() {
     /*
        case Qt::Key_F:
        */
-    //TODO: change this into just fullscreening the main widget...
     auto&& fullscreen = addKeyMappableFunction("Fullscreen", "Fullscreen",
             [&]() {
-            if (isFullScreen()) {
+            //Letting qt manage full screen state is bad on xmonad so I'll manually manage
+            showBars = !showBars;
+            if(showBars) {
             showNormal();
-            menuBar()->show();
-            m_control->show();
+            toggleBars(true);
 
             } else {
             showFullScreen();
-            if (menuBar()->isHidden()) {
-            menuBar()->show();
-
-            } else {
-            menuBar()->hide();
-            }
-            m_control->hide();
+            toggleBars(false);
             }
             });
     /*
@@ -195,10 +190,9 @@ void MainWindow::initializeKeyBindings() {
        */
     auto&& not_fullscreen = addKeyMappableFunction("!Fullscreen", "Leave fullscreen",
             [&](){
-            if (isFullScreen()) {
             showNormal();
-            }
-            menuBar()->show();
+            toggleBars(true);
+            showBars=true;
             });
     for(int k: {Qt::Key_Right, Qt::Key_Down, Qt::Key_PageDown, Qt::Key_Space}) {
     m_keys.insert(std::make_pair(k,next_page));
@@ -215,6 +209,18 @@ void MainWindow::initializeKeyBindings() {
 
 }
 
+void MainWindow::toggleBars(bool show) {
+    if(show) {
+        qWarning() << "Showing bars";
+            menuBar()->show();
+            m_control->show();
+    } else {
+        qWarning() << "Hiding bars";
+            menuBar()->hide();
+            m_control->hide();
+    }
+
+}
 
 
 void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {

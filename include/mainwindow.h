@@ -81,6 +81,8 @@ signals:
 
     void pageChanged();
 private:
+    void toggleBars(bool show);
+    bool showBars=true;//by default show bars
     void initializeKeyBindings();
     KeyMappableFunction::ptr& addKeyMappableFunction(KeyMappableFunction::ptr&& ptr);
     KeyMappableFunction::ptr& addKeyMappableFunction(QString&& short_name, QString && name,std::function<void(void)>&&);
