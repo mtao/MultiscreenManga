@@ -210,6 +210,8 @@ void MainWindow::initializeKeyBindings() {
     }
     m_keys.insert(std::make_pair(Qt::Key_F, fullscreen));
     m_keys.insert(std::make_pair(Qt::Key_Escape, not_fullscreen));
+    m_keys.insert(std::make_pair(Qt::Key_Home, first_page));
+    m_keys.insert(std::make_pair(Qt::Key_End, last_page));
 
 }
 
