@@ -64,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
     main_widget->setParent(this);
     //    main_widget->setMain();
 
+    initializeKeyBindings();
     setCentralWidget(main_widget);
 }
 
@@ -122,6 +123,98 @@ void MainWindow::openRootVolume() {
     openRootVolume(filename, true);
 }
 
+KeyMappableFunction::ptr& MainWindow::addKeyMappableFunction(KeyMappableFunction::ptr&& ptr) {
+    return (m_available_keys.emplace(std::make_pair(ptr->short_name,ptr)).first)->second;
+}
+KeyMappableFunction::ptr& MainWindow::addKeyMappableFunction(QString&& short_name, QString&& name, std::function<void(void)>&& f) {
+    return addKeyMappableFunction(std::make_shared<KeyMappableFunction>(short_name,name,f));
+}
+
+void MainWindow::initializeKeyBindings() {
+
+    /*
+       case Qt::Key_Right:
+       case Qt::Key_Down:
+       case Qt::Key_PageDown:
+       case Qt::Key_Space:
+       */
+    auto&& next_page = addKeyMappableFunction("NextPage", "Next Page",
+            [&]() {
+            nextPage();
+            });
+    /*
+       case Qt::Key_Left:
+       case Qt::Key_Up:
+       case Qt::Key_PageUp:
+       */
+    auto&& prev_page = addKeyMappableFunction("PrevPage", "Previous Page",
+            [&]() {
+            previousPage();
+            });
+    /*
+       case Qt::Key_Home:
+       */
+    auto&& first_page = addKeyMappableFunction("FirstPage", "First Page",
+            [&]() {
+            changePage(0);
+            });
+    /*
+       case Qt::Key_End:
+       */
+    auto&& last_page = addKeyMappableFunction("LastPage", "Last Page",
+            [&]() {
+            if(m_root_volume)
+            {
+            changePage(m_root_volume->size()-m_renderwidgets.size());
+            }
+            });
+    /*
+       case Qt::Key_F:
+       */
+    //TODO: change this into just fullscreening the main widget...
+    auto&& fullscreen = addKeyMappableFunction("Fullscreen", "Fullscreen",
+            [&]() {
+            if (isFullScreen()) {
+            showNormal();
+            menuBar()->show();
+            m_control->show();
+
+            } else {
+            showFullScreen();
+            if (menuBar()->isHidden()) {
+            menuBar()->show();
+
+            } else {
+            menuBar()->hide();
+            }
+            m_control->hide();
+            }
+            });
+    /*
+       case Qt::Key_Escape:
+       */
+    auto&& not_fullscreen = addKeyMappableFunction("!Fullscreen", "Leave fullscreen",
+            [&](){
+            if (isFullScreen()) {
+            showNormal();
+            }
+            menuBar()->show();
+            });
+    for(int k: {Qt::Key_Right, Qt::Key_Down, Qt::Key_PageDown, Qt::Key_Space}) {
+    m_keys.insert(std::make_pair(k,next_page));
+    m_keys.insert(std::make_pair(k|Qt::ShiftModifier,prev_page));
+    }
+    for(int k: {Qt::Key_Left, Qt::Key_Up, Qt::Key_PageUp}) {
+    m_keys.insert(std::make_pair(k,prev_page));
+    m_keys.insert(std::make_pair(k|Qt::ShiftModifier,next_page));
+    }
+    m_keys.insert(std::make_pair(Qt::Key_F, fullscreen));
+    m_keys.insert(std::make_pair(Qt::Key_Escape, not_fullscreen));
+
+}
+
+
+
 void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
     QString path = scanForHomePath(filepath);
     QFileInfo fileinfo(path);
@@ -130,7 +223,7 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
     }
     bool willFindIndex = false;
     if(fileinfo.isFile() && config->isSupportedImageFormat(path)) {
-    //if(fileinfo.isFile() && config->isSupportedImageFormat(fileinfo.completeSuffix())) {
+        //if(fileinfo.isFile() && config->isSupportedImageFormat(fileinfo.completeSuffix())) {
         path = fileinfo.dir().absolutePath();
         willFindIndex = true;
     }
@@ -223,58 +316,11 @@ void MainWindow::renderWidgetClosed(uint index) {
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {
-    switch (event->key()) {
-    case Qt::Key_Left:
-    case Qt::Key_Up:
-    case Qt::Key_PageUp:
-        if(event->modifiers() & Qt::ShiftModifier) {
-            nextPage();
-        } else {
-            previousPage();
-        }
-        break;
-    case Qt::Key_Right:
-    case Qt::Key_Down:
-    case Qt::Key_PageDown:
-    case Qt::Key_Space:
-        if(event->modifiers() & Qt::ShiftModifier) {
-            previousPage();
-        } else {
-            nextPage();
-        }
-        break;
-    case Qt::Key_Home:
-        changePage(0);
-        break;
-    case Qt::Key_End:
-        if(m_root_volume)
-        {
-        changePage(m_root_volume->size()-m_renderwidgets.size());
-        }
-        break;
-    case Qt::Key_F:
-        if (isFullScreen()) {
-            showNormal();
-            menuBar()->show();
-            m_control->show();
-
-        } else {
-            showFullScreen();
-            if (menuBar()->isHidden()) {
-                menuBar()->show();
-
-            } else {
-                menuBar()->hide();
-            }
-            m_control->hide();
-        }
-        break;
-    case Qt::Key_Escape:
-        if (isFullScreen()) {
-            showNormal();
-        }
-        menuBar()->show();
-    default:
+    int keyvalue = event->key() | event->modifiers();
+    auto&& kmfit = m_keys.find(keyvalue);
+    if(kmfit != m_keys.end())  {
+        (*kmfit->second)();
+    } else {
         QMainWindow::keyPressEvent(event);
     }
 }

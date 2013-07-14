@@ -36,7 +36,14 @@ SET(MultiscreenManga_HEADERS
 SET(MultiscreenManga_SOURCES ${MultiscreenManga_SOURCES} ${MultiscreenManga_HEADERS})
 
 # Qt
-SET(QT_QMAKE_EXECUTABLE qmake-qt4 qmake4 qmake)
+#SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+#SET(CMAKE_AUTOMOC ON)
+#FIND_PACKAGE(Qt5Widgets)
+##INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDES})
+##ADD_DEFINITIONS(${Qt5Widgets_Definitions})
+##SET(CMAKE_CXX_FLAGS "${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+
+#SET(QT_QMAKE_EXECUTABLE qmake-qt4 qmake4 qmake)
 FIND_PACKAGE(Qt4 REQUIRED)
 SET(QT_USE_QTOPENGL TRUE)
 QT4_WRAP_CPP(MultiscreenManga_HEADERS_MOC ${MultiscreenManga_HEADERS_TOMOC})
@@ -47,7 +54,14 @@ ADD_DEFINITIONS(${QT_DEFINITIONS})
 ADD_EXECUTABLE(MultiscreenManga
     ${MultiscreenManga_SOURCES}
     ${MultiscreenManga_HEADERS}
-    ${MultiscreenManga_HEADERS_MOC})
+        ${MultiscreenManga_HEADERS_MOC}
+    )
+
 TARGET_LINK_LIBRARIES(MultiscreenManga ${QT_LIBRARIES} GL poppler-qt4 magic)
+
+#TARGET_LINK_LIBRARIES(MultiscreenManga GL poppler-qt4 magic)
+#TARGET_LINK_LIBRARIES(MultiscreenManga ${Qt5Widgets_LIBRARIES} GL poppler-qt4 magic)
+#QT5_USE_MODULES(MultiscreenManga Widgets)
+#QT5_USE_MODULES(MultiscreenManga Core)
 
 INSTALL(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/MultiscreenManga DESTINATION bin)
