@@ -4,11 +4,14 @@
 #include "savestate.pb.h"
 #include <QDir>
 class SaveStateManager {
+    public:
     SaveStateManager();
-    LocalSaveState get_state(const std::string& str) const;
-    void save_state(const LocalSaveState & local_state) const;
+    const LocalSaveState& get_state(const std::string& str) ;
+    void save_state() const;
+    void set_page(int idx);
     private:
-    QDir state_dir;
+    QDir m_state_dir;
+    LocalSaveState m_local_state;
 };
 
 #endif

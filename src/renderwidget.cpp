@@ -29,7 +29,6 @@ RenderWidget::RenderWidget(
 
 void RenderWidget::setMangaVolume(std::shared_ptr<MangaVolume> volume) {
     m_volume = volume;
-    setPage(0);
 }
 
 void RenderWidget::setPage(uint page) {

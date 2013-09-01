@@ -47,8 +47,6 @@ public:
     virtual bool refreshOnResize() const {return false;}
     virtual int findIndex(const QString &) { return -1; }
     static MangaVolume * createVolume(const QString & filepath);
-protected:
-    QString m_file_dir;
 public slots:
     virtual void getNumRenderWidgets(int) {}
 };
@@ -68,6 +66,7 @@ public:
 
 
 protected:
+    QString m_file_dir;
     std::vector<MangaPage> m_pages;
     std::vector<QString> m_page_names;
     std::set<uint> m_active_pages;
