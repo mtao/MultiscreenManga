@@ -1,0 +1,10 @@
+message SaveState {
+    required string filename = 1;
+    required bytes hash = 2;
+    required int32 currentpage = 3 [default = 0 ];
+}
+
+message LocalSaveState {
+    required string path = 1;
+    required SaveState state = 2;
+}

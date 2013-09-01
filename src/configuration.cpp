@@ -32,6 +32,12 @@ ConfigurationHidden::ConfigurationHidden()
     }
 
     supportedFileFilters.append(");; All files (*.*)");
+
+    QString configurationDirectoryPath = QDir::toNativeSeparators(QDir::home().path()+"/.config/MultiscreenManga");
+    configurationDirectory.setPath(configurationDirectoryPath);
+    if(!configurationDirectory.exists()) {
+        configurationDirectory.mkpath(configurationDirectoryPath);
+    }
 }
 
 ConfigurationHidden & ConfigurationHidden::getInstance() {
@@ -59,11 +65,15 @@ const QString & Configuration::getSupportedFileFilters() const {
     return config.supportedFileFilters;
 }
 
-const bool Configuration::isSupportedImageFormat(const QString & str) const {
+bool Configuration::isSupportedImageFormat(const QString & str) const {
     return getSupportedImageFormats().contains(str.toLower());
 }
-const bool Configuration::isSupportedVolumeFormat(const QString & str) const {
+bool Configuration::isSupportedVolumeFormat(const QString & str) const {
     return getSupportedVolumeFormats().contains(str.toLower());
+}
+
+const QDir & Configuration::getConfigurationDirectory() const {
+    return config.configurationDirectory;
 }
 
 
