@@ -253,8 +253,10 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
         m_root_volume->getNumRenderWidgets(m_renderwidgets.size());
         m_curindex = m_fsmodel.index(path);
     }
+    m_page_num = -1;
     emit newRootMangaVolume(m_root_volume);
     loadState();
+    qWarning() << "Loading state...";
     if(willFindIndex && m_root_volume) {
         qWarning() << "Finding index: " << m_root_volume->findIndex(path);
         emit changePage(m_root_volume->findIndex(filepath));

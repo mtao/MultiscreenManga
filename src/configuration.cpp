@@ -123,12 +123,14 @@ Configuration::FileType Configuration::getVolumeFormat(const QString & filepath)
         return ZIP;
     } else if(mimetype == QObject::tr("application/x-rar")) {
         return RAR;
+    } else if(mimetype == QObject::tr("application/pdf")) {
+        return PDF;
     } else {
         qDebug() << "Mime detection failed, falling back onto file endings";
         QString ending = filepath.split(".").last().toLower();
         if(ending == ("pdf")) {
             return PDF;
-        } else if(ending == (".zip") || ending == ("cbz")) {
+        } else if(ending == ("zip") || ending == ("cbz")) {
             return ZIP;
             qDebug() << "Apparently its a zip";
         } else if(ending == ("rar") || ending == ("cbr")) {
