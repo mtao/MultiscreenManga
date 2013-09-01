@@ -21,6 +21,8 @@ SET(MultiscreenManga_SOURCES
     src/renderwidget.cpp
     src/configuration.cpp
     src/sidebar.cpp
+    src/savestate.cpp
+    src/remotesync.cpp
     )
 # Include files
 SET(MultiscreenManga_HEADERS_TOMOC
@@ -28,6 +30,8 @@ SET(MultiscreenManga_HEADERS_TOMOC
     include/mangavolume.h
     include/renderwidget.h
     include/sidebar.h
+    include/savestate.h
+    include/remotesync.h
     )
 SET(MultiscreenManga_HEADERS
     ${MultiscreenManga_HEADERS_TOMOC}
@@ -50,14 +54,42 @@ QT4_WRAP_CPP(MultiscreenManga_HEADERS_MOC ${MultiscreenManga_HEADERS_TOMOC})
 INCLUDE(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 
+FIND_PACKAGE(Protobuf)
+
+
+
+IF ( PROTOBUF_FOUND )
+    ADD_DEFINITIONS( -DUSE_SERIALIZATION )
+    FIND_LIBRARY(ZEROMQ_LIB LIBRARY NAMES zmq )
+    FIND_PATH(ZEROMQ_INCLUDE LIBRARY NAMES zmq.hpp)
+    IF(ZEROMQ_INCLUDE)
+        ADD_DEFINITIONS( -DUSE_NETWORKING )
+    ELSE()
+        IF(ZEROMQ_LIB)
+            MESSAGE(No zeromq cpp bindings, please install)
+        ELSE()
+            MESSAGE(No networking support, install zeromq and its cpp bindings)
+        ENDIF(ZEROMQ_LIB)
+    ENDIF(ZEROMQ_INCLUDE)
+    SET(NETWORK_LIBS ${PROTOBUF_LIBRARY} zmq )
+    INCLUDE_DIRECTORIES( ${PROTOBUF_INCLUDE_DIR} )
+    SET(PROTOBUF_IMPORT_DIRS protobuf)
+    PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS protobuf/savestate.proto)
+ELSE()
+    MESSAGE(Don't have both protobuf no serialization or network sync support added.)
+ENDIF ( PROTOBUF_FOUND )
+    
+
+
 # Executable to build
 ADD_EXECUTABLE(MultiscreenManga
     ${MultiscreenManga_SOURCES}
     ${MultiscreenManga_HEADERS}
         ${MultiscreenManga_HEADERS_MOC}
+        ${PROTO_SRCS} ${PROTO_HDRS}
     )
 
-TARGET_LINK_LIBRARIES(MultiscreenManga ${QT_LIBRARIES} GL poppler-qt4 magic)
+TARGET_LINK_LIBRARIES(MultiscreenManga ${QT_LIBRARIES} GL poppler-qt4 magic ${NETWORK_LIBS}  )
 
 #TARGET_LINK_LIBRARIES(MultiscreenManga GL poppler-qt4 magic)
 #TARGET_LINK_LIBRARIES(MultiscreenManga ${Qt5Widgets_LIBRARIES} GL poppler-qt4 magic)

@@ -4,6 +4,7 @@
 #include <QStringList>
 #include <QString>
 #include <QFileInfo>
+#include <QDir>
 
 /**
  * This should never be instantiated. Initialization happens in 
@@ -24,6 +25,7 @@ private:
     QStringList supportedVolumeFormats;
     QStringList supportedFileFiltersList;
     QString supportedFileFilters;
+    QDir configurationDirectory;
 };
 
 class Configuration
@@ -38,10 +40,11 @@ public:
     const QStringList & getSupportedFileFiltersList() const;
     const QString & getSupportedFileFilters() const;
 
-    const bool isSupportedImageFormat(const QString & str) const;
-    const bool isSupportedVolumeFormat(const QString & str) const;
+    bool isSupportedImageFormat(const QString & str) const;
+    bool isSupportedVolumeFormat(const QString & str) const;
     FileType getVolumeFormat(const QString & filename) const;
     static QString getMimeType(const QFileInfo& filename);
+    const QDir & getConfigurationDirectory() const;
 };
 
 #endif

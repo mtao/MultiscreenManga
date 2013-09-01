@@ -235,6 +235,9 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
         path = fileinfo.dir().absolutePath();
         willFindIndex = true;
     }
+    if(m_root_volume) {
+        saveState();
+    }
     std::shared_ptr< MangaVolume> volume = openVolume(path);
     if (volume == nullptr) {
         qWarning() << "Could not open path" << filepath;
@@ -245,13 +248,13 @@ void MainWindow::openRootVolume(const QString & filepath, bool changeRoot) {
         return;
     }
     m_root_volume = volume;
+    m_filename = fileinfo.fileName();//Now that we know taht we've opened the root vol set the filename...
     if(m_root_volume) {
         m_root_volume->getNumRenderWidgets(m_renderwidgets.size());
         m_curindex = m_fsmodel.index(path);
     }
-    m_filename = fileinfo.fileName();//Now that we know taht we've opened the root vol set the filename...
-    m_page_num = 0;
     emit newRootMangaVolume(m_root_volume);
+    loadState();
     if(willFindIndex && m_root_volume) {
         qWarning() << "Finding index: " << m_root_volume->findIndex(path);
         emit changePage(m_root_volume->findIndex(filepath));
@@ -295,6 +298,7 @@ void MainWindow::changePage(int index) {
     }
     // Change to the new page
     m_page_num = index;
+    m_state_mgr.set_page(m_page_num);
     emit newPage(m_page_num);
 }
 
@@ -383,6 +387,20 @@ void MainWindow::changeVolume(int index){
         }
     }
 }
+void MainWindow::loadState() {
+    const LocalSaveState& local_state = m_state_mgr.get_state(m_filename.toUtf8().data());
+    changePage(local_state.state().currentpage());
+}
+
+void MainWindow::saveState() {
+    if(m_root_volume->numPages()-m_renderwidgets.size() ==  m_page_num) {
+        m_state_mgr.set_page(0);
+    }
+    m_state_mgr.save_state();
+}
 
 MainWindow::~MainWindow() {
+    if(m_root_volume) {
+        saveState();
+    }
 }

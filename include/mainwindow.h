@@ -10,6 +10,7 @@
 #include <stack>
 #include "mangavolume.h"
 #include "renderwidget.h"
+#include "savestate.h"
 class QDockWidget;
 
 struct KeyMappableFunction {
@@ -84,6 +85,9 @@ private:
     void toggleBars(bool show);
     bool showBars=true;//by default show bars
     void initializeKeyBindings();
+    void saveState();
+    void loadState();
+    SaveStateManager m_state_mgr;
     KeyMappableFunction::ptr& addKeyMappableFunction(KeyMappableFunction::ptr&& ptr);
     KeyMappableFunction::ptr& addKeyMappableFunction(QString&& short_name, QString && name,std::function<void(void)>&&);
     std::map<QString,KeyMappableFunction::ptr> m_available_keys;
