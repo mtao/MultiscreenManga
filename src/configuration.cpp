@@ -115,14 +115,15 @@ Configuration::FileType Configuration::getVolumeFormat(const QString & filepath)
         return RAR;
     } else {
         qDebug() << "Mime detection failed, falling back onto file endings";
-        if(filepath.endsWith(".pdf")) {
+        QString ending = filepath.split(".").last().toLower();
+        if(ending == ("pdf")) {
             return PDF;
-        } else if(filepath.endsWith(".zip") || filepath.endsWith(".cbz")) {
+        } else if(ending == (".zip") || ending == ("cbz")) {
             return ZIP;
             qDebug() << "Apparently its a zip";
-        } else if(filepath.endsWith(".rar") || filepath.endsWith(".cbr")) {
+        } else if(ending == ("rar") || ending == ("cbr")) {
             return RAR;
-        } else if(isSupportedImageFormat(filepath.split(".").last())) {
+        } else if(isSupportedImageFormat(ending)) {
             return IMAGE;
         }
     }
