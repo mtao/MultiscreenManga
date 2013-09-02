@@ -300,7 +300,11 @@ void MainWindow::changePage(int index) {
     }
     // Change to the new page
     m_page_num = index;
+#ifdef USE_NETWORKING
+    m_remote_client.manager().set_page(m_page_num);
+#else
     m_state_mgr.set_page(m_page_num);
+#endif
     emit newPage(m_page_num);
 }
 
@@ -390,19 +394,37 @@ void MainWindow::changeVolume(int index){
     }
 }
 void MainWindow::loadState() {
-    const LocalSaveState& local_state = m_state_mgr.get_state(m_filename.toUtf8().data());
-    changePage(local_state.state().currentpage());
+#ifdef USE_NETWORKING
+    const SaveState& state = m_remote_client.sync(m_filename.toUtf8().data());
+#else
+    const SaveState& state = m_state_mgr.get_state(m_filename.toUtf8().data());
+#endif
+    changePage(state.currentpage());
 }
 
 void MainWindow::saveState() {
+    qWarning() << "Saving state... ";
     if(m_root_volume->numPages()-m_renderwidgets.size() ==  m_page_num) {
+#ifdef USE_NETWORKING
+        m_remote_client.manager().set_page(0);
+#else
         m_state_mgr.set_page(0);
+#endif
     }
+#ifdef USE_NETWORKING
+    m_remote_client.manager().save_state();
+    m_remote_client.sync();
+#else
     m_state_mgr.save_state();
+#endif
 }
-
+#include <iostream>
 MainWindow::~MainWindow() {
+    std::cout << "Mainwindow being destoryed.." << std::endl;
     if(m_root_volume) {
+        qWarning() << "root volume existed";
         saveState();
+    } else {
+        qWarning() << "No root volume..";
     }
 }

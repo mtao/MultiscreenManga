@@ -5,7 +5,7 @@ SET(CMAKE_RUNTIME_OUTPUT_DIR ${PROJECT_BINARY_DIR}/bin)
 SET(CMAKE_LIBRARY_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
 SET(CMAKE_ARCHIVE_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
 
-ADD_DEFINITIONS(-std=c++0x)
+ADD_DEFINITIONS(-std=c++11)
 ADD_DEFINITIONS(-Werror)
 
 # Include dirs
@@ -22,7 +22,8 @@ SET(MultiscreenManga_SOURCES
     src/configuration.cpp
     src/sidebar.cpp
     src/savestate.cpp
-    src/remotesync.cpp
+    src/remotesyncclient.cpp
+    src/remotesyncserver.cpp
     )
 # Include files
 SET(MultiscreenManga_HEADERS_TOMOC
@@ -31,7 +32,8 @@ SET(MultiscreenManga_HEADERS_TOMOC
     include/renderwidget.h
     include/sidebar.h
     include/savestate.h
-    include/remotesync.h
+    include/remotesyncclient.h
+    include/remotesyncserver.h
     )
 SET(MultiscreenManga_HEADERS
     ${MultiscreenManga_HEADERS_TOMOC}
@@ -60,7 +62,7 @@ FIND_PACKAGE(Protobuf)
 
 IF ( PROTOBUF_FOUND )
     ADD_DEFINITIONS( -DUSE_SERIALIZATION )
-    FIND_LIBRARY(ZEROMQ_LIB LIBRARY NAMES zmq )
+    FIND_LIBRARY(ZEROMQ_LIB LIBRARY NAMES zmqpp )
     FIND_PATH(ZEROMQ_INCLUDE LIBRARY NAMES zmq.hpp)
     IF(ZEROMQ_INCLUDE)
         ADD_DEFINITIONS( -DUSE_NETWORKING )
@@ -71,7 +73,7 @@ IF ( PROTOBUF_FOUND )
             MESSAGE(No networking support, install zeromq and its cpp bindings)
         ENDIF(ZEROMQ_LIB)
     ENDIF(ZEROMQ_INCLUDE)
-    SET(NETWORK_LIBS ${PROTOBUF_LIBRARY} zmq )
+    SET(NETWORK_LIBS ${PROTOBUF_LIBRARY} zmq zmqpp )
     INCLUDE_DIRECTORIES( ${PROTOBUF_INCLUDE_DIR} )
     SET(PROTOBUF_IMPORT_DIRS protobuf)
     PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS protobuf/savestate.proto)

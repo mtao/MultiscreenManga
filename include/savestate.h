@@ -3,15 +3,33 @@
 #define SAVESTATE_H
 #include "savestate.pb.h"
 #include <QDir>
+
+inline std::string stateFilenameFromSaveState(const SaveState& state) {
+    return state.filename() + "-" + state.hash();
+}
+
+class SaveStateLock {
+    public:
+        SaveStateLock();
+        ~SaveStateLock();
+    private:
+        static const std::string lockpath;
+        int fd;
+};
+
+
 class SaveStateManager {
     public:
     SaveStateManager();
-    const LocalSaveState& get_state(const std::string& str) ;
+    SaveState& get_state(const std::string& str) ;
+    SaveState& get_state(const std::string& filename, const std::string& hash) ;
+    SaveState& get_state(const SaveState& state) ;
+    SaveState& get_state() {return m_state;}
     void save_state() const;
     void set_page(int idx);
     private:
     QDir m_state_dir;
-    LocalSaveState m_local_state;
+    SaveState m_state;
 };
 
 #endif

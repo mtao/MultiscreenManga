@@ -11,6 +11,7 @@
 #include "mangavolume.h"
 #include "renderwidget.h"
 #include "savestate.h"
+#include "remotesyncclient.h"
 class QDockWidget;
 
 struct KeyMappableFunction {
@@ -87,7 +88,12 @@ private:
     void initializeKeyBindings();
     void saveState();
     void loadState();
+#ifdef USE_NETWORKING
+    RemoteSyncClient m_remote_client;
+#else
     SaveStateManager m_state_mgr;
+#endif
+
     KeyMappableFunction::ptr& addKeyMappableFunction(KeyMappableFunction::ptr&& ptr);
     KeyMappableFunction::ptr& addKeyMappableFunction(QString&& short_name, QString && name,std::function<void(void)>&&);
     std::map<QString,KeyMappableFunction::ptr> m_available_keys;
