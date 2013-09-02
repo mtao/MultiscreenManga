@@ -25,7 +25,7 @@ class SaveStateManager {
     SaveState& get_state(const std::string& filename, const std::string& hash) ;
     SaveState& get_state(const SaveState& state) ;
     SaveState& get_state() {return m_state;}
-    void save_state() const;
+    void save_state(bool do_lock=true) const;
     void set_page(int idx);
     private:
     QDir m_state_dir;

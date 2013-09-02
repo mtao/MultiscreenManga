@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <fcntl.h>
 #include <unistd.h>
+#include <memory>
 
 
 const std::string SaveStateLock::lockpath = "/tmp/multiscreenmanga.lock";
@@ -62,8 +63,11 @@ SaveState& SaveStateManager::get_state(const std::string& path) {
     return m_state;
 
 };
-void SaveStateManager::save_state() const {
-    SaveStateLock lock;
+void SaveStateManager::save_state(bool do_lock) const {
+    std::unique_ptr<SaveStateLock> lock;
+    if(do_lock) {
+        lock.reset(new SaveStateLock());
+    }
     const QString config_filename(stateFilenameFromSaveState(m_state).c_str());
     std::string abspath(m_state_dir.absoluteFilePath(config_filename).toUtf8().data());
     std::fstream output(abspath, std::ios::out | std::ios::binary);

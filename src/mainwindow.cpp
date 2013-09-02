@@ -395,7 +395,7 @@ void MainWindow::changeVolume(int index){
 }
 void MainWindow::loadState() {
 #ifdef USE_NETWORKING
-    const SaveState& state = m_remote_client.sync(m_filename.toUtf8().data());
+    const SaveState& state = m_remote_client.sync(m_filename.toUtf8().data(),false);
 #else
     const SaveState& state = m_state_mgr.get_state(m_filename.toUtf8().data());
 #endif
@@ -413,7 +413,7 @@ void MainWindow::saveState() {
     }
 #ifdef USE_NETWORKING
     m_remote_client.manager().save_state();
-    m_remote_client.sync();
+    m_remote_client.sync(true);
 #else
     m_state_mgr.save_state();
 #endif

@@ -7,8 +7,8 @@
 class RemoteSyncClient {
     public:
         RemoteSyncClient();
-        SaveState& sync(const std::string& filename);
-        SaveState& sync();
+        SaveState& sync(const std::string& filename, bool forced=false);
+        SaveState& sync(bool forced=false);
         SaveStateManager& manager() { return m_state_mgr; }
     private:
         zmqpp::context m_context;

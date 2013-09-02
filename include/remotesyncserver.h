@@ -7,6 +7,7 @@
 class RemoteSyncServer {
     public:
         RemoteSyncServer();
+        ~RemoteSyncServer();
         void run();
     private:
         zmqpp::context m_context;

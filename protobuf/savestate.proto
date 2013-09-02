@@ -4,7 +4,7 @@ message SaveState {
     required int32 currentpage = 3 [default = 0 ];
 }
 
-message LocalSaveState {
-    required string path = 1;
-    required SaveState state = 2;
+message SaveStateRPC {
+    required SaveState state = 1;
+    required bool forced = 2;
 }
